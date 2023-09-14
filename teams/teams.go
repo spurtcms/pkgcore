@@ -15,7 +15,7 @@ import (
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type TeamAuth struct {
-	Authority auth.Authoritys
+	Authority auth.Authority
 }
 
 func MigrateTables(db *gorm.DB) {
