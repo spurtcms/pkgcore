@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/spurtcms/core/auth"
+	"github.com/spurtcms/spurtcms-core/auth"
 	"gorm.io/gorm"
 )
 
