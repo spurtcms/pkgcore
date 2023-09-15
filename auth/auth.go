@@ -34,12 +34,12 @@ func MigrationTable(db *gorm.DB) {
 		TblRole{},
 	)
 
-	db.Exec(`insert into tbl_roles('id','name','description','is_active','created_by','created_on') values(1,'admin','Has the full administration power',1,'2023-07-25 05:50:14')`);
+	db.Exec(`insert into tbl_roles('id','name','description','is_active','created_by','created_on') values(1,'admin','Has the full administration power',1,'2023-07-25 05:50:14')`)
 
 	db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS tbl_role_permisison_unique
     ON public.tbl_role_permissions USING btree
     (role_id ASC NULLS LAST, permission_id ASC NULLS LAST)
-    TABLESPACE pg_default;`);
+    TABLESPACE pg_default;`)
 }
 
 type Permission struct {
@@ -122,7 +122,7 @@ func VerifyToken(token string, secret string) (userid, roleid int, err error) {
 }
 
 // Check UserName Password
-func (a Authority) Checklogin(c *http.Request, secretkey string) (string,error) {
+func Checklogin(c *http.Request, db *gorm.DB, secretkey string) (string, error) {
 
 	username := c.PostFormValue("username")
 
@@ -130,9 +130,9 @@ func (a Authority) Checklogin(c *http.Request, secretkey string) (string,error) 
 
 	var user TblUser
 
-	if err := a.DB.Table("tbl_users").Where("username = ?", username).First(&user).Error; err != nil {
+	if err := db.Table("tbl_users").Where("username = ?", username).First(&user).Error; err != nil {
 
-		return "",err
+		return "", err
 
 	}
 
@@ -140,18 +140,18 @@ func (a Authority) Checklogin(c *http.Request, secretkey string) (string,error) 
 
 	if passerr != nil || passerr == bcrypt.ErrMismatchedHashAndPassword {
 
-		return "",errors.New("invalid password")
+		return "", errors.New("invalid password")
 
 	}
 
 	token, err := CreateToken(user.Id, user.RoleId, secretkey)
 
-	if err != nil{
+	if err != nil {
 
-		return "",err
+		return "", err
 	}
 
-	return token,nil
+	return token, nil
 }
 
 // create role
