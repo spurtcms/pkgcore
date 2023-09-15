@@ -11,9 +11,9 @@ import (
 )
 
 // create instance
-func NewInstance(a *authority.Option) *authority.Authority {
+func NewInstance(a *authority.Option) authority.Authority {
 
-	auth := &authority.Authority{
+	auth := authority.Authority{
 		DB:     a.DB,
 		Token:  a.Token,
 		Secret: a.Secret,

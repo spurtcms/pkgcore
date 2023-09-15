@@ -1,6 +1,8 @@
 package teams
 
-import "time"
+import (
+	"time"
+)
 
 type TblUser struct {
 	Id                   int `gorm:"primaryKey"`
@@ -31,4 +33,13 @@ type TblUser struct {
 	ModuleId             int       `gorm:"<-:false"`
 	PermissionId         int       `gorm:"-"`
 	FullAccessPermission int       `gorm:"<-:false"`
+	RoleName             string    `gorm:"<-:false"`
+}
+
+type Filters struct {
+	Keyword  string
+	Category string
+	Status   string
+	FromDate string
+	ToDate   string
 }

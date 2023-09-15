@@ -114,11 +114,11 @@ func VerifyToken(token string, secret string) (userid, roleid int, err error) {
 
 	// }
 
-	usrid := Claims["user_id"].(int)
+	usrid := Claims["user_id"]
 
-	rolid := Claims["role_id"].(int)
+	rolid := Claims["role_id"]
 
-	return usrid, rolid, nil
+	return int(usrid.(float64)), int(rolid.(float64)), nil
 }
 
 // Check UserName Password
@@ -275,14 +275,14 @@ func (a Authority) IsGranted(modulename string, permisison Action) (bool, error)
 
 	var modpermissions TblModulePermission
 
-	if err := a.DB.Table("tbl_modules").Where("module_name=?", modulename).Find(&module).Error; err != nil {
-
-		if err1 := a.DB.Table("tbl_modules_permissions").Where("display_name=?", modulename).Find(&modpermissions).Error; err != nil {
-
-			return false, err1
-		}
+	if err := a.DB.Debug().Table("tbl_modules").Where("module_name=?", modulename).Find(&module).Error; err != nil {
 
 		return false, err
+	}
+
+	if err1 := a.DB.Debug().Table("tbl_module_permissions").Where("display_name=?", modulename).Find(&modpermissions).Error; err1 != nil {
+
+		return false, err1
 	}
 
 	if module.Id != 0 {
@@ -298,14 +298,14 @@ func (a Authority) IsGranted(modulename string, permisison Action) (bool, error)
 
 	if permisison == "CRUD" {
 
-		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete'", modid).Find(&modulepermission).Error; err != nil {
+		if err := a.DB.Debug().Table("tbl_module_permissions").Where("module_id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete'", modid).Find(&modulepermission).Error; err != nil {
 
 			return false, err
 		}
 
 	} else {
 
-		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and display_name=?", modid, permisison).Find(&modulepermission).Error; err != nil {
+		if err := a.DB.Debug().Table("tbl_module_permissions").Where("module_id=? and display_name=?", modid, permisison).Find(&modulepermission).Error; err != nil {
 
 			return false, err
 		}

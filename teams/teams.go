@@ -45,10 +45,55 @@ func hashingPassword(pass string) string {
 }
 
 /*List*/
-func (a *TeamAuth) ListUser(Limit,Offset int) error {
+func (a *TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUser, totoaluser int64, err error) {
 
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
-	return nil
+	if checkerr != nil {
+
+		return []TblUser{}, 0, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Users", auth.Read)
+
+	if err != nil {
+
+		return []TblUser{}, 0, err
+	}
+
+	if check {
+
+		var Total_users int64
+
+		var users []TblUser
+
+		query := a.Authority.DB.Debug().Table("tbl_users").Select("tbl_users.id,tbl_users.uuid,tbl_users.role_id,tbl_users.first_name,tbl_users.last_name,tbl_users.email,tbl_users.password,tbl_users.username,tbl_users.mobile_no,tbl_users.profile_image,tbl_users.profile_image_path,tbl_users.created_on,tbl_users.created_by,tbl_users.modified_on,tbl_users.modified_by,tbl_users.is_active,tbl_users.is_deleted,tbl_users.deleted_on,tbl_users.deleted_by,tbl_users.data_access,tbl_roles.name as role_name").
+			Joins("inner join tbl_roles on tbl_users.role_id = tbl_roles.id").Where("tbl_users.is_deleted=?", 0)
+
+		if filter.Keyword != "" {
+
+			query = query.Where("(LOWER(TRIM(tbl_users.first_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
+				Or("LOWER(TRIM(tbl_users.last_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
+				Or("LOWER(TRIM(tbl_roles.name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
+				Or("LOWER(TRIM(tbl_users.username)) ILIKE LOWER(TRIM(?)))", "%"+filter.Keyword+"%")
+
+		}
+
+		if limit != 0 {
+
+			query.Offset(offset).Limit(limit).Order("id desc").Find(&users)
+
+			return users, 0, nil
+
+		}
+
+		query.Find(&users).Count(&Total_users)
+
+		return []TblUser{}, Total_users, nil
+
+	}
+
+	return []TblUser{}, 0, errors.New("not authorized")
 }
 
 /*User Creation*/
