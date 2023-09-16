@@ -63,6 +63,19 @@ type Filter struct {
 	ToDate   string
 }
 
+func MemberInstance(a *auth.Option) auth.Authority {
+
+	auth := auth.Authority{
+		DB:     a.DB,
+		Token:  a.Token,
+		Secret: a.Secret,
+	}
+
+	MigrateTables(auth.DB)
+
+	return auth
+}
+
 /*List member group*/
 func (a Memberauth) ListMemberGroup(mem MemberRequired) (membergrouplis []TblMemberGroup, err error) {
 
@@ -123,7 +136,6 @@ func (a Memberauth) CreateMemberGroup(c *http.Request) error {
 		return err
 	}
 
-
 	if check {
 
 		if c.PostFormValue("membergroup_name") == "" || c.PostFormValue(
@@ -175,7 +187,6 @@ func (a Memberauth) UpdateMemberGroup(c *http.Request) error {
 
 		return err
 	}
-
 
 	if check {
 
@@ -285,7 +296,6 @@ func (a Memberauth) CreateMember(c *http.Request) error {
 		return err
 	}
 
-
 	if check {
 
 		uvuid := (uuid.New()).String()
@@ -316,7 +326,7 @@ func (a Memberauth) CreateMember(c *http.Request) error {
 
 		}
 
-	}else{
+	} else {
 
 		return errors.New("not authorized")
 	}
@@ -341,7 +351,6 @@ func (a Memberauth) UpdateMember(c *http.Request) error {
 
 		return err
 	}
-
 
 	if check {
 
@@ -397,7 +406,6 @@ func (a Memberauth) DeleteMember(id int) error {
 
 		return err
 	}
-
 
 	if check {
 
