@@ -15,7 +15,7 @@ import (
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type TeamAuth struct {
-	Authority auth.Authority
+	Authority *auth.Authority
 }
 
 func MigrateTables(db *gorm.DB) {
@@ -67,7 +67,7 @@ func (a *TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUse
 
 		var users []TblUser
 
-		query := a.Authority.DB.Debug().Table("tbl_users").Select("tbl_users.id,tbl_users.uuid,tbl_users.role_id,tbl_users.first_name,tbl_users.last_name,tbl_users.email,tbl_users.password,tbl_users.username,tbl_users.mobile_no,tbl_users.profile_image,tbl_users.profile_image_path,tbl_users.created_on,tbl_users.created_by,tbl_users.modified_on,tbl_users.modified_by,tbl_users.is_active,tbl_users.is_deleted,tbl_users.deleted_on,tbl_users.deleted_by,tbl_users.data_access,tbl_roles.name as role_name").
+		query := a.Authority.DB.Table("tbl_users").Select("tbl_users.id,tbl_users.uuid,tbl_users.role_id,tbl_users.first_name,tbl_users.last_name,tbl_users.email,tbl_users.password,tbl_users.username,tbl_users.mobile_no,tbl_users.profile_image,tbl_users.profile_image_path,tbl_users.created_on,tbl_users.created_by,tbl_users.modified_on,tbl_users.modified_by,tbl_users.is_active,tbl_users.is_deleted,tbl_users.deleted_on,tbl_users.deleted_by,tbl_users.data_access,tbl_roles.name as role_name").
 			Joins("inner join tbl_roles on tbl_users.role_id = tbl_roles.id").Where("tbl_users.is_deleted=?", 0)
 
 		if filter.Keyword != "" {
@@ -176,7 +176,7 @@ func (a *TeamAuth) UpdateUser(c *http.Request) error {
 		return checkerr
 	}
 
-	if c.PostFormValue("mem_role") == "" || c.PostFormValue("mem_fname") == "" || c.PostFormValue("mem_lname") == "" || c.PostFormValue("mem_email") == "" || c.PostFormValue("mem_usrname") == "" || c.PostFormValue("mem_mob") == "" || c.PostFormValue("mem_pass") == "" {
+	if c.PostFormValue("mem_role") == "" || c.PostFormValue("mem_fname") == "" || c.PostFormValue("mem_lname") == "" || c.PostFormValue("mem_email") == "" || c.PostFormValue("mem_usrname") == "" || c.PostFormValue("mem_mob") == "" {
 
 		return errors.New("given some values is empty")
 	}
@@ -288,4 +288,87 @@ func (a *TeamAuth) DeleteUser(id int) error {
 	}
 
 	return nil
+}
+
+// check email
+func (a *TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var user TblUser
+
+	if userid == 0 {
+		if err := a.Authority.DB.Table("tbl_users").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and is_deleted = 0 ", Email).First(&user).Error; err != nil {
+
+			return false, err
+		}
+	} else {
+		if err := a.Authority.DB.Table("tbl_users").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and id not in(?) and is_deleted= 0 ", Email, userid).First(&user).Error; err != nil {
+
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+// check mobile
+func (a *TeamAuth) CheckNumber(mobile string, userid int) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var user TblUser
+
+	if userid == 0 {
+		if err := a.Authority.DB.Table("tbl_users").Where("mobile_no = ? and is_deleted=0", mobile).First(&user).Error; err != nil {
+
+			return false, err
+		}
+	} else {
+		if err := a.Authority.DB.Table("tbl_users").Where("mobile_no = ? and id not in (?) and is_deleted=0", mobile, userid).First(&user).Error; err != nil {
+
+			return false, err
+		}
+
+	}
+
+	return true, nil
+}
+
+// check username
+func (a *TeamAuth) CheckUsername(username string, userid int) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var user TblUser
+
+	if userid == 0 {
+		if err := a.Authority.DB.Table("tbl_users").Where("username = ? and is_deleted=0", username).First(&user).Error; err != nil {
+
+			return false, err
+		}
+	} else {
+		if err := a.Authority.DB.Table("tbl_users").Where("username = ? and id not in (?) and is_deleted=0", username, userid).First(&user).Error; err != nil {
+
+			return false, err
+		}
+
+	}
+
+	return true, nil
 }
