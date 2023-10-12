@@ -23,6 +23,7 @@ type TblMember struct {
 	ModifiedBy       int       `gorm:"DEFAULT:NULL"`
 	MemberGroupId    int
 	Group            []TblMemberGroup `gorm:"-"`
+	Password         string
 }
 
 type TblMemberGroup struct {

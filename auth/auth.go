@@ -34,7 +34,7 @@ func MigrationTable(db *gorm.DB) {
 		TblRole{},
 	)
 
-	db.Exec(`insert into tbl_roles('id','name','description','is_active','created_by','created_on') values(1,'admin','Has the full administration power',1,'2023-07-25 05:50:14')`)
+	db.Exec(`insert into tbl_roles('id','name','description','is_active','created_by','created_on') values(1,'admin','Has the full administration power',1,1,'2023-07-25 05:50:14')`)
 
 	db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS tbl_role_permisison_unique
     ON public.tbl_role_permissions USING btree
@@ -104,16 +104,6 @@ func VerifyToken(token string, secret string) (userid, roleid int, err error) {
 		fmt.Println(tkn)
 		return 0, 0, errors.New("invalid token")
 	}
-
-	// exptime := Claims["expiry_time"]
-
-	// current_time := time.Now().Unix()
-
-	// etime := int64(exptime.(float64))
-
-	// if (current_time <= etime) && (current_time >= etime - 300) {
-
-	// }
 
 	usrid := Claims["user_id"]
 
