@@ -340,7 +340,7 @@ func (a Memberauth) ListMembers(offset, limit int, filter Filters, flag bool) (m
 }
 
 // Create Member
-func (a Memberauth) CreateMember(c *http.Request) error {
+func (a Memberauth) CreateMember(c *http.Request, imagename string, imagepath string) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -364,9 +364,9 @@ func (a Memberauth) CreateMember(c *http.Request) error {
 
 		member.Uuid = uvuid
 
-		// imageData := c.PostFormValue("crop_data")
+		member.ProfileImage = imagename
 
-		// member.ProfileImagePath = imageData
+		member.ProfileImagePath = imagepath
 
 		member.MemberGroupId, _ = strconv.Atoi(c.PostFormValue("mem_group"))
 
@@ -400,7 +400,7 @@ func (a Memberauth) CreateMember(c *http.Request) error {
 }
 
 // Update Member
-func (a Memberauth) UpdateMember(c *http.Request) error {
+func (a Memberauth) UpdateMember(c *http.Request, imageName string, imagePath string) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -435,6 +435,10 @@ func (a Memberauth) UpdateMember(c *http.Request) error {
 		member.Email = c.PostFormValue("mem_email")
 
 		member.MobileNo = c.PostFormValue("mem_mobile")
+
+		member.ProfileImage = imageName
+
+		member.ProfileImagePath = imagePath
 
 		member.IsActive, _ = strconv.Atoi(c.PostFormValue("mem_activestat"))
 
