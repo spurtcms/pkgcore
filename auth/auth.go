@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -18,6 +19,10 @@ type Authority struct {
 	DB     *gorm.DB
 	Token  string
 	Secret string
+}
+
+type Role struct {
+	Auth Authority
 }
 
 type Option struct {
@@ -42,20 +47,9 @@ func MigrationTable(db *gorm.DB) {
     TABLESPACE pg_default;`)
 }
 
-type Permission struct {
-	ModuleName string
-	Action     []string //create,edit,update,delete
-
-}
-
-type MultiPermissin struct {
-	Permissions []Permission
-}
-
 type Action string
 
 const (
-	
 	Create Action = "Create"
 
 	Read Action = "View"
@@ -146,39 +140,145 @@ func Checklogin(c *http.Request, db *gorm.DB, secretkey string) (string, error) 
 }
 
 // create role
-func (a Authority) CreateRole(c *http.Request) (TblRole, error) {
+func (a Role) RoleList(limit int, offset int, filter Filter) (roles []TblRole, rolecount int64, err error) {
 
-	userid, _, checkerr := VerifyToken(a.Token, a.Secret)
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
 	if checkerr != nil {
 
-		return TblRole{}, checkerr
+		return []TblRole{}, 0, checkerr
 	}
 
-	var role TblRole
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
 
-	role.Name = c.PostFormValue("name")
+	if check {
 
-	role.Description = c.PostFormValue("description")
+		if err != nil {
 
-	role.Slug = strings.ToLower(role.Name)
+			return []TblRole{}, 0, err
+		}
 
-	role.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		var role []TblRole
 
-	role.CreatedBy = userid
+		GetAllRoles(&role, limit, offset, filter, a.Auth.DB)
 
-	if err := a.DB.Table("tbl_roles").Create(&role).Error; err != nil {
+		var roleco []TblRole
 
-		return TblRole{}, err
+		rolecounts, _ := GetAllRoles(&roleco, limit, offset, filter, a.Auth.DB)
+
+		return role, rolecounts, nil
 	}
 
-	return role, nil
+	return []TblRole{}, 0, errors.New("not authorized")
+}
+
+// create role
+func (a Role) CreateRole(c *http.Request) error {
+
+	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		var role TblRole
+
+		role.Name = c.PostFormValue("name")
+
+		role.Description = c.PostFormValue("description")
+
+		role.Slug = strings.ToLower(role.Name)
+
+		role.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+		role.CreatedBy = userid
+
+		err := RoleCreate(&role, a.Auth.DB)
+
+		if err != nil {
+
+			return err
+		}
+
+	}
+
+	return errors.New("not authorized")
+}
+
+// update role
+func (a Role) UpdateRole(c *http.Request, roleid int) (err error) {
+
+	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		var role TblRole
+
+		role.Id = roleid
+
+		role.Name = c.PostFormValue("name")
+
+		role.Description = c.PostFormValue("description")
+
+		role.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+		role.ModifiedBy = userid
+
+		err1 := RoleUpdate(&role, a.Auth.DB)
+
+		if err1 != nil {
+
+			return err1
+		}
+
+	}
+
+	return errors.New("not authorized")
+}
+
+// delete role
+func (a Role) DeleteRole(roleid int) (err error) {
+
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		var role TblRole
+
+		err1 := RoleDelete(&role, roleid, a.Auth.DB)
+
+		if err != nil {
+
+			return err1
+		}
+
+	}
+	return errors.New("not authorized")
 }
 
 // create permission
-func (a Authority) CreatePermission(c *http.Request, Perm MultiPermissin) error {
+func (a Authority) CreatePermission(Perm MultiPermissin) error {
 
-	_, _, checkerr := VerifyToken(a.Token, a.Secret)
+	userid, _, checkerr := VerifyToken(a.Token, a.Secret)
 
 	if checkerr != nil {
 
@@ -194,11 +294,64 @@ func (a Authority) CreatePermission(c *http.Request, Perm MultiPermissin) error 
 
 	if check {
 
-		// for _, val := range Perm.Permissions {
+		var checknotexist []TblRolePermission
 
-		// 	var modperm TblModulePermission
+		cnerr := CheckPermissionIdNotExist(&checknotexist, Perm.RoleId, []int{}, a.DB)
 
-		// }
+		if cnerr != nil {
+
+			log.Println(cnerr)
+
+		} else if len(checknotexist) != 0 {
+
+			DeleteRolePermissionById(&checknotexist, Perm.RoleId, a.DB)
+		}
+
+		var checkexist []TblRolePermission
+
+		cerr := CheckPermissionIdExist(&checkexist, Perm.RoleId, []int{}, a.DB)
+
+		if cerr != nil {
+
+			log.Println(cerr)
+
+		} else {
+
+			var existid []int
+
+			for _, exist := range checkexist {
+
+				existid = append(existid, exist.PermissionId)
+
+			}
+
+			pid := Difference([]int{}, existid)
+
+			var createrolepermission []TblRolePermission
+
+			for _, roleperm := range pid {
+
+				var createmod TblRolePermission
+
+				createmod.PermissionId = roleperm
+
+				createmod.RoleId = Perm.RoleId
+
+				createmod.CreatedBy = userid
+
+				createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+				createrolepermission = append(createrolepermission, createmod)
+
+			}
+
+			if len(createrolepermission) != 0 {
+
+				CreateRolePermission(&createrolepermission, a.DB)
+
+			}
+
+		}
 
 	} else {
 
@@ -209,7 +362,7 @@ func (a Authority) CreatePermission(c *http.Request, Perm MultiPermissin) error 
 }
 
 // Create permissionforrole
-func (a Authority) AssignPermissionforRole(c *http.Request) error {
+func (a Authority) AssignPermissionforRole() error {
 
 	userid, roleid, checkerr := VerifyToken(a.Token, a.Secret)
 
@@ -316,4 +469,20 @@ func (a Authority) IsGranted(modulename string, permisison Action) (bool, error)
 
 	return true, nil
 
+}
+
+// Set Difference: A - B
+func Difference(a, b []int) (diff []int) {
+	m := make(map[int]bool)
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if _, ok := m[item]; !ok {
+			diff = append(diff, item)
+		}
+	}
+	return
 }

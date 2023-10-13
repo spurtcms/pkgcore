@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	authority "github.com/spurtcms/spurtcms-core/auth"
-	teams "github.com/spurtcms/spurtcms-core/teams"
+	"github.com/spurtcms/spurtcms-core/teams"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

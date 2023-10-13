@@ -24,6 +24,7 @@ type TblMember struct {
 	MemberGroupId    int
 	Group            []TblMemberGroup `gorm:"-"`
 	Password         string
+	Username         string
 }
 
 type TblMemberGroup struct {

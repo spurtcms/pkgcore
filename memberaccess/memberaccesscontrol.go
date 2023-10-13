@@ -45,7 +45,7 @@ func (a AccessAuth) GetSpace() (spaceid []int, err error) {
 
 	var TblaccessControlusergroup []TblAccessControlUserGroup
 
-	err = GetSpaceByMemberId(&TblaccessControlusergroup, Groupid)
+	err = GetSpaceByMemberId(&TblaccessControlusergroup, Groupid,a.Authority.DB)
 
 	if err != nil {
 
@@ -74,7 +74,7 @@ func (a AccessAuth) GetPage() (pageid []int, err error) {
 
 	var TblaccessControlusergroup []TblAccessControlUserGroup
 
-	err = GetPageByMemberId(&TblaccessControlusergroup, groupid)
+	err = GetPageByMemberId(&TblaccessControlusergroup, groupid,a.Authority.DB)
 
 	if err != nil {
 
@@ -104,7 +104,7 @@ func (a AccessAuth) GetGroup() (pagegroupid []int, err error) {
 
 	var TblaccessControlusergroup []TblAccessControlUserGroup
 
-	err = GetGroupByMemberId(&TblaccessControlusergroup, groupid)
+	err = GetGroupByMemberId(&TblaccessControlusergroup, groupid,a.Authority.DB)
 
 	if err != nil {
 

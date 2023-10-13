@@ -63,33 +63,17 @@ func (a *TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUse
 
 	if check {
 
-		var Total_users int64
-
 		var users []TblUser
 
-		query := a.Authority.DB.Table("tbl_users").Select("tbl_users.id,tbl_users.uuid,tbl_users.role_id,tbl_users.first_name,tbl_users.last_name,tbl_users.email,tbl_users.password,tbl_users.username,tbl_users.mobile_no,tbl_users.profile_image,tbl_users.profile_image_path,tbl_users.created_on,tbl_users.created_by,tbl_users.modified_on,tbl_users.modified_by,tbl_users.is_active,tbl_users.is_deleted,tbl_users.deleted_on,tbl_users.deleted_by,tbl_users.data_access,tbl_roles.name as role_name").
-			Joins("inner join tbl_roles on tbl_users.role_id = tbl_roles.id").Where("tbl_users.is_deleted=?", 0)
+		flg := false
 
-		if filter.Keyword != "" {
+		UserList, _ := GetUsersList(&users, offset, limit, filter, flg, a.Authority.DB)
 
-			query = query.Where("(LOWER(TRIM(tbl_users.first_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
-				Or("LOWER(TRIM(tbl_users.last_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
-				Or("LOWER(TRIM(tbl_roles.name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
-				Or("LOWER(TRIM(tbl_users.username)) ILIKE LOWER(TRIM(?)))", "%"+filter.Keyword+"%")
+		var userscoount []TblUser
 
-		}
+		_, usercount := GetUsersList(&userscoount, 0, 0, filter, flg, a.Authority.DB)
 
-		if limit != 0 {
-
-			query.Offset(offset).Limit(limit).Order("id desc").Find(&users)
-
-			return users, 0, nil
-
-		}
-
-		query.Find(&users).Count(&Total_users)
-
-		return []TblUser{}, Total_users, nil
+		return UserList, usercount, nil
 
 	}
 
@@ -152,10 +136,11 @@ func (a *TeamAuth) CreateUser(c *http.Request) error {
 
 		user.CreatedBy = userid
 
-		if err := a.Authority.DB.Create(&user).Error; err != nil {
+		err := CreateUser(&user, a.Authority.DB)
+
+		if err != nil {
 
 			return err
-
 		}
 
 	} else {
@@ -276,10 +261,11 @@ func (a *TeamAuth) DeleteUser(id int) error {
 
 		user.IsDeleted = 1
 
-		if err := a.Authority.DB.Model(&user).Where("id=?", id).Updates(TblUser{IsDeleted: user.IsDeleted, DeletedOn: user.DeletedOn, DeletedBy: user.DeletedBy}).Error; err != nil {
+		err := DeleteUser(&user, a.Authority.DB)
+
+		if err != nil {
 
 			return err
-
 		}
 
 	} else {
@@ -302,16 +288,11 @@ func (a *TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
 
 	var user TblUser
 
-	if userid == 0 {
-		if err := a.Authority.DB.Table("tbl_users").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and is_deleted = 0 ", Email).First(&user).Error; err != nil {
+	err := CheckEmail(&user, Email, userid, a.Authority.DB)
 
-			return false, err
-		}
-	} else {
-		if err := a.Authority.DB.Table("tbl_users").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and id not in(?) and is_deleted= 0 ", Email, userid).First(&user).Error; err != nil {
+	if err != nil {
 
-			return false, err
-		}
+		return false, err
 	}
 
 	return true, nil
@@ -329,17 +310,11 @@ func (a *TeamAuth) CheckNumber(mobile string, userid int) (bool, error) {
 
 	var user TblUser
 
-	if userid == 0 {
-		if err := a.Authority.DB.Table("tbl_users").Where("mobile_no = ? and is_deleted=0", mobile).First(&user).Error; err != nil {
+	err := CheckNumber(&user, mobile, userid, a.Authority.DB)
 
-			return false, err
-		}
-	} else {
-		if err := a.Authority.DB.Table("tbl_users").Where("mobile_no = ? and id not in (?) and is_deleted=0", mobile, userid).First(&user).Error; err != nil {
+	if err != nil {
 
-			return false, err
-		}
-
+		return false, err
 	}
 
 	return true, nil
@@ -357,17 +332,11 @@ func (a *TeamAuth) CheckUsername(username string, userid int) (bool, error) {
 
 	var user TblUser
 
-	if userid == 0 {
-		if err := a.Authority.DB.Table("tbl_users").Where("username = ? and is_deleted=0", username).First(&user).Error; err != nil {
+	err := CheckUsername(&user, username, userid, a.Authority.DB)
 
-			return false, err
-		}
-	} else {
-		if err := a.Authority.DB.Table("tbl_users").Where("username = ? and id not in (?) and is_deleted=0", username, userid).First(&user).Error; err != nil {
+	if err != nil {
 
-			return false, err
-		}
-
+		return false, err
 	}
 
 	return true, nil
