@@ -48,6 +48,18 @@ type Filters struct {
 	ToDate   string
 }
 
+type TeamCreate struct{
+	FirstName            string
+	LastName             string
+	RoleId               int
+	Email                string
+	Username             string
+	Password             string
+	IsActive             int
+	DataAccess           int
+	MobileNo             string
+}
+
 func CreateUser(user *TblUser, DB *gorm.DB) error {
 
 	if err := DB.Create(&user).Error; err != nil {

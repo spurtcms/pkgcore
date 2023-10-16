@@ -713,7 +713,7 @@ func (a Memberauth) MemberIsActive(c *http.Request) error {
 
 //
 
-func (a Memberauth) GetMemberDetails(c *http.Request) (members TblMember, err error) {
+func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -732,8 +732,6 @@ func (a Memberauth) GetMemberDetails(c *http.Request) (members TblMember, err er
 	// if check {
 
 	var member TblMember
-
-	id, _ := strconv.Atoi(c.URL.Query().Get("id"))
 
 	fmt.Println("sfd", id)
 
@@ -794,11 +792,11 @@ func CreateMemberToken(userid, roleid int, secretkey string) (string, error) {
 }
 
 /*Member login*/
-func CheckMemberLogin(c *http.Request, db *gorm.DB, secretkey string) (string, error) {
+func CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string) (string, error) {
 
-	username := c.PostFormValue("username")
+	username := memlogin.Username
 
-	password := c.PostFormValue("pass")
+	password := memlogin.Password
 
 	var member TblMember
 

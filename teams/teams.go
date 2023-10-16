@@ -2,8 +2,6 @@ package teams
 
 import (
 	"errors"
-	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -81,7 +79,7 @@ func (a *TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUse
 }
 
 /*User Creation*/
-func (a *TeamAuth) CreateUser(c *http.Request) error {
+func (a *TeamAuth) CreateUser(teamcreate TeamCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -90,7 +88,7 @@ func (a *TeamAuth) CreateUser(c *http.Request) error {
 		return checkerr
 	}
 
-	if c.PostFormValue("mem_role") == "" || c.PostFormValue("mem_fname") == "" || c.PostFormValue("mem_lname") == "" || c.PostFormValue("mem_email") == "" || c.PostFormValue("mem_usrname") == "" || c.PostFormValue("mem_mob") == "" || c.PostFormValue("mem_pass") == "" {
+	if teamcreate.RoleId == 0 || teamcreate.FirstName == "" || teamcreate.LastName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" || teamcreate.Password == "" {
 
 		return errors.New("given some values is empty")
 	}
@@ -104,7 +102,7 @@ func (a *TeamAuth) CreateUser(c *http.Request) error {
 
 	if check {
 
-		password := c.PostFormValue("mem_pass")
+		password := teamcreate.Password
 
 		uvuid := (uuid.New()).String()
 
@@ -114,23 +112,23 @@ func (a *TeamAuth) CreateUser(c *http.Request) error {
 
 		user.Uuid = uvuid
 
-		user.RoleId, _ = strconv.Atoi(c.PostFormValue("mem_role"))
+		user.RoleId = teamcreate.RoleId
 
-		user.FirstName = c.PostFormValue("mem_fname")
+		user.FirstName = teamcreate.FirstName
 
-		user.LastName = c.PostFormValue("mem_lname")
+		user.LastName = teamcreate.LastName
 
-		user.Email = c.PostFormValue("mem_email")
+		user.Email = teamcreate.Email
 
-		user.Username = c.PostFormValue("mem_usrname")
+		user.Username = teamcreate.Username
 
 		user.Password = hash_pass
 
-		user.MobileNo = c.PostFormValue("mem_mob")
+		user.MobileNo = teamcreate.MobileNo
 
-		user.IsActive, _ = strconv.Atoi(c.PostFormValue("mem_activestat"))
+		user.IsActive = teamcreate.IsActive
 
-		user.DataAccess, _ = strconv.Atoi(c.PostFormValue("mem_data_access"))
+		user.DataAccess = teamcreate.DataAccess
 
 		user.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -152,7 +150,7 @@ func (a *TeamAuth) CreateUser(c *http.Request) error {
 }
 
 // Update User
-func (a *TeamAuth) UpdateUser(c *http.Request) error {
+func (a *TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -161,14 +159,14 @@ func (a *TeamAuth) UpdateUser(c *http.Request) error {
 		return checkerr
 	}
 
-	if c.PostFormValue("mem_role") == "" || c.PostFormValue("mem_fname") == "" || c.PostFormValue("mem_lname") == "" || c.PostFormValue("mem_email") == "" || c.PostFormValue("mem_usrname") == "" || c.PostFormValue("mem_mob") == "" {
+	if teamcreate.RoleId == 0 || teamcreate.FirstName == "" || teamcreate.LastName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" || teamcreate.Password == "" {
 
 		return errors.New("given some values is empty")
 	}
 
-	user_id, _ := strconv.Atoi(c.PostFormValue("mem_id"))
+	user_id := userid
 
-	password := c.PostFormValue("mem_pass")
+	password := teamcreate.Password
 
 	var user TblUser
 
@@ -181,31 +179,25 @@ func (a *TeamAuth) UpdateUser(c *http.Request) error {
 
 	user.Id = user_id
 
-	user.RoleId, _ = strconv.Atoi(c.PostFormValue("mem_role"))
+	user.RoleId = teamcreate.RoleId
 
-	user.FirstName = c.PostFormValue("mem_fname")
+	user.FirstName = teamcreate.FirstName
 
-	user.LastName = c.PostFormValue("mem_lname")
+	user.LastName = teamcreate.LastName
 
-	user.Email = c.PostFormValue("mem_email")
+	user.Email = teamcreate.Email
 
-	user.Username = c.PostFormValue("mem_usrname")
+	user.Username = teamcreate.Username
 
-	user.MobileNo = c.PostFormValue("mem_mob")
+	user.MobileNo = teamcreate.MobileNo
 
 	user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
 	user.ModifiedBy = user_id
 
-	if c.PostFormValue("mem_activestat") != "" {
+	user.IsActive = teamcreate.IsActive
 
-		user.IsActive, _ = strconv.Atoi(c.PostFormValue("mem_activestat"))
-	}
-
-	if c.PostFormValue("mem_data_access") != "" {
-
-		user.DataAccess, _ = strconv.Atoi(c.PostFormValue("mem_data_access"))
-	}
+	user.DataAccess = teamcreate.DataAccess
 
 	query := a.Authority.DB.Table("tbl_users").Where("id=?", user.Id)
 

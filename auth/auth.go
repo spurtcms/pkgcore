@@ -173,7 +173,7 @@ func (a Role) RoleList(limit int, offset int, filter Filter) (roles []TblRole, r
 }
 
 // create role
-func (a Role) CreateRole(c *http.Request) error {
+func (a Role) CreateRole(rolec RoleCreation) error {
 
 	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
@@ -186,16 +186,16 @@ func (a Role) CreateRole(c *http.Request) error {
 
 	if check {
 
-		if c.PostFormValue("name") == "" || c.PostFormValue("description") == "" {
+		if rolec.Name == "" || rolec.Description == "" {
 
 			return errors.New("empty value")
 		}
 
 		var role TblRole
 
-		role.Name = c.PostFormValue("name")
+		role.Name = rolec.Name
 
-		role.Description = c.PostFormValue("description")
+		role.Description = rolec.Description
 
 		role.Slug = strings.ToLower(role.Name)
 
@@ -216,7 +216,7 @@ func (a Role) CreateRole(c *http.Request) error {
 }
 
 // update role
-func (a Role) UpdateRole(c *http.Request, roleid int) (err error) {
+func (a Role) UpdateRole(rolec RoleCreation, roleid int) (err error) {
 
 	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
@@ -229,19 +229,18 @@ func (a Role) UpdateRole(c *http.Request, roleid int) (err error) {
 
 	if check {
 
-		if c.PostFormValue("name") == "" || c.PostFormValue("description") == "" {
+		if rolec.Name == "" || rolec.Description == "" {
 
 			return errors.New("empty value")
 		}
-
 
 		var role TblRole
 
 		role.Id = roleid
 
-		role.Name = c.PostFormValue("name")
+		role.Name = rolec.Name
 
-		role.Description = c.PostFormValue("description")
+		role.Description = rolec.Description
 
 		role.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -274,7 +273,7 @@ func (a Role) DeleteRole(roleid int) (err error) {
 	if check {
 
 		if roleid <= 0 {
-			
+
 			return errors.New("invalid role id cannot delete")
 		}
 

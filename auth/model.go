@@ -130,6 +130,11 @@ type MultiPermissin struct {
 	Permissions []Permission
 }
 
+type RoleCreation struct {
+	Name        string
+	Description string
+}
+
 /*get all roles*/
 func GetAllRoles(role *[]TblRole, limit, offset int, filter Filter, DB *gorm.DB) (rolecount int64, err error) {
 

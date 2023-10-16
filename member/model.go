@@ -40,3 +40,8 @@ type TblMemberGroup struct {
 	ModifiedBy  int       `gorm:"DEFAULT:NULL"`
 	DateString  string    `gorm:"-"`
 }
+
+type MemberLogin struct{
+	Username string
+	Password string
+}
