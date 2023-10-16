@@ -186,6 +186,11 @@ func (a Role) CreateRole(c *http.Request) error {
 
 	if check {
 
+		if c.PostFormValue("name") == "" || c.PostFormValue("description") == "" {
+
+			return errors.New("empty value")
+		}
+
 		var role TblRole
 
 		role.Name = c.PostFormValue("name")
@@ -224,6 +229,12 @@ func (a Role) UpdateRole(c *http.Request, roleid int) (err error) {
 
 	if check {
 
+		if c.PostFormValue("name") == "" || c.PostFormValue("description") == "" {
+
+			return errors.New("empty value")
+		}
+
+
 		var role TblRole
 
 		role.Id = roleid
@@ -261,6 +272,11 @@ func (a Role) DeleteRole(roleid int) (err error) {
 	check, _ := a.Auth.IsGranted("Roles", CRUD)
 
 	if check {
+
+		if roleid <= 0 {
+			
+			return errors.New("invalid role id cannot delete")
+		}
 
 		var role TblRole
 

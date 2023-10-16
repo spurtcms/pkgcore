@@ -49,14 +49,6 @@ func MigrateTables(db *gorm.DB) {
 
 }
 
-type MemberRequired struct {
-	Request *http.Request
-	Param   string
-	Limit   int
-	Offset  int
-	filter  Filters
-}
-
 type Filters struct {
 	Keyword  string
 	Category string
@@ -68,7 +60,7 @@ type Filters struct {
 /*List member group*/
 func (a Memberauth) ListMemberGroup(offset, limit int, filter Filters) (membergroup []TblMemberGroup, MemberGroupCount int64, err error) {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -111,7 +103,7 @@ func (a Memberauth) ListMemberGroup(offset, limit int, filter Filters) (membergr
 
 func (a Memberauth) GetGroupData() (membergrouplists []TblMemberGroup, err error) {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -195,7 +187,7 @@ func (a Memberauth) CreateMemberGroup(c *http.Request) error {
 }
 
 /*Update Member Group*/
-func (a Memberauth) UpdateMemberGroup(c *http.Request) error {
+func (a Memberauth) UpdateMemberGroup(c *http.Request, id int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -220,6 +212,8 @@ func (a Memberauth) UpdateMemberGroup(c *http.Request) error {
 
 		var membergroup TblMemberGroup
 
+		membergroup.Id = id
+
 		membergroup.Name = c.PostFormValue("membergroup_name")
 
 		membergroup.Slug = strings.ToLower(c.PostFormValue("membergroup_name"))
@@ -227,8 +221,6 @@ func (a Memberauth) UpdateMemberGroup(c *http.Request) error {
 		membergroup.Description = c.PostFormValue("membergroup_desc")
 
 		membergroup.ModifiedBy = userid
-
-		membergroup.Id, _ = strconv.Atoi(c.PostFormValue("membergroup_id"))
 
 		membergroup.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -246,9 +238,9 @@ func (a Memberauth) UpdateMemberGroup(c *http.Request) error {
 }
 
 /*Delete Member Group*/
-func (a Memberauth) DeleteMemberGroup(c *http.Request) error {
+func (a Memberauth) DeleteMemberGroup(id int) error {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -268,15 +260,13 @@ func (a Memberauth) DeleteMemberGroup(c *http.Request) error {
 
 		membergroup.IsDeleted = 1
 
-		MemberGroupId, _ := strconv.Atoi(c.URL.Query().Get("id"))
+		if id <= 0 {
 
-		if MemberGroupId == 0 {
-
-			return errors.New("internal error server")
+			return errors.New("invalid id cannot delete")
 
 		}
 
-		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", MemberGroupId).Updates(TblMemberGroup{IsDeleted: membergroup.IsDeleted}).Error; err != nil {
+		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", id).Updates(TblMemberGroup{IsDeleted: membergroup.IsDeleted}).Error; err != nil {
 
 			return err
 
@@ -292,7 +282,7 @@ func (a Memberauth) DeleteMemberGroup(c *http.Request) error {
 // list member
 func (a Memberauth) ListMembers(offset, limit int, filter Filters, flag bool) (member []TblMember, totoalmember int64, err error) {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -313,7 +303,7 @@ func (a Memberauth) ListMembers(offset, limit int, filter Filters, flag bool) (m
 			query = query.Where("(LOWER(TRIM(tbl_members.first_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_members.last_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_member_group.name)) ILIKE LOWER(TRIM(?)))"+" AND tbl_members.is_deleted=0"+" AND tbl_member_group.is_deleted=0", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%")
 
 		}
-		if flag == true {
+		if flag {
 
 			query.Order("id desc").Find(&member)
 
@@ -321,7 +311,7 @@ func (a Memberauth) ListMembers(offset, limit int, filter Filters, flag bool) (m
 
 		}
 
-		if limit != 0 && flag == false {
+		if limit != 0 && !flag{
 
 			query.Offset(offset).Limit(limit).Order("id desc").Find(&member)
 
@@ -411,7 +401,7 @@ func (a Memberauth) CreateMember(c *http.Request, imagename string, imagepath st
 }
 
 // Update Member
-func (a Memberauth) UpdateMember(c *http.Request, imageName string, imagePath string) error {
+func (a Memberauth) UpdateMember(c *http.Request, id int, imageName string, imagePath string) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -435,7 +425,7 @@ func (a Memberauth) UpdateMember(c *http.Request, imageName string, imagePath st
 
 		member.Uuid = uvuid
 
-		member.Id, _ = strconv.Atoi(c.PostFormValue("mem_id"))
+		member.Id = id
 
 		member.MemberGroupId, _ = strconv.Atoi(c.PostFormValue("mem_group"))
 
@@ -472,12 +462,12 @@ func (a Memberauth) UpdateMember(c *http.Request, imageName string, imagePath st
 
 		if member.Password == "" && member.ProfileImage == "" && member.ProfileImagePath == "" {
 
-			query = query.Omit("password , profile_image , profile_image_path").UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "member_group_id": member.MemberGroupId, "email": member.Email, "username": member.Username, "mobile_no": member.MobileNo, "is_active": member.IsActive, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy})
+			query.Omit("password , profile_image , profile_image_path").UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "member_group_id": member.MemberGroupId, "email": member.Email, "username": member.Username, "mobile_no": member.MobileNo, "is_active": member.IsActive, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy})
 
 			return err
 
 		} else {
-			query = query.UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "member_group_id": member.MemberGroupId, "email": member.Email, "username": member.Username, "mobile_no": member.MobileNo, "is_active": member.IsActive, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath, "password": member.Password})
+			query.UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "member_group_id": member.MemberGroupId, "email": member.Email, "username": member.Username, "mobile_no": member.MobileNo, "is_active": member.IsActive, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath, "password": member.Password})
 			return err
 		}
 
@@ -490,7 +480,7 @@ func (a Memberauth) UpdateMember(c *http.Request, imageName string, imagePath st
 }
 
 // delete member
-func (a Memberauth) DeleteMember(c *http.Request) error {
+func (a Memberauth) DeleteMember(id int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -509,8 +499,6 @@ func (a Memberauth) DeleteMember(c *http.Request) error {
 	if check {
 
 		var member TblMember
-
-		var id, _ = strconv.Atoi(c.URL.Query().Get("id"))
 
 		member.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
@@ -555,7 +543,7 @@ func Process(r http.Request, field string) (Image, error) {
 		return Image{}, err
 	}
 
-	_,_ , err = image.Decode(bytes.NewReader(bs))
+	_, _, err = image.Decode(bytes.NewReader(bs))
 
 	if err != nil {
 		return Image{}, err
@@ -573,9 +561,9 @@ func Process(r http.Request, field string) (Image, error) {
 
 // Check Email is already exits or not
 
-func (a Memberauth) CheckEmailInMember(c *http.Request) error {
+func (a Memberauth) CheckEmailInMember(id int, email string) error {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -592,11 +580,7 @@ func (a Memberauth) CheckEmailInMember(c *http.Request) error {
 	if check {
 		var member TblMember
 
-		userid, _ := strconv.Atoi(c.PostFormValue("id"))
-
-		email := c.PostFormValue("email")
-
-		if userid == 0 {
+		if id == 0 {
 
 			if err := a.Authority.DB.Table("tbl_members").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and is_deleted=0", email).First(&member).Error; err != nil {
 
@@ -604,7 +588,7 @@ func (a Memberauth) CheckEmailInMember(c *http.Request) error {
 			}
 		} else {
 
-			if err := a.Authority.DB.Table("tbl_members").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and id not in (?) and is_deleted = 0 ", email, userid).First(&member).Error; err != nil {
+			if err := a.Authority.DB.Debug().Table("tbl_members").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and id not in (?) and is_deleted = 0 ", email, id).First(&member).Error; err != nil {
 
 				return err
 			}
@@ -616,9 +600,9 @@ func (a Memberauth) CheckEmailInMember(c *http.Request) error {
 
 // Check Number is already exits or not
 
-func (a Memberauth) CheckNumberInMember(c *http.Request) error {
+func (a Memberauth) CheckNumberInMember(id int, number string) error {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -636,11 +620,7 @@ func (a Memberauth) CheckNumberInMember(c *http.Request) error {
 
 		var member TblMember
 
-		userid, _ := strconv.Atoi(c.PostFormValue("id"))
-
-		number := c.PostFormValue("number")
-
-		if userid == 0 {
+		if id == 0 {
 
 			if err := a.Authority.DB.Table("tbl_members").Where("mobile_no = ? and is_deleted = 0", number).First(&member).Error; err != nil {
 
@@ -648,7 +628,7 @@ func (a Memberauth) CheckNumberInMember(c *http.Request) error {
 			}
 		} else {
 
-			if err := a.Authority.DB.Table("tbl_members").Where("mobile_no = ? and id not in (?) and is_deleted = 0", number, userid).First(&member).Error; err != nil {
+			if err := a.Authority.DB.Debug().Table("tbl_members").Where("mobile_no = ? and id not in (?) and is_deleted = 0", number, id).First(&member).Error; err != nil {
 
 				return err
 			}
@@ -659,9 +639,9 @@ func (a Memberauth) CheckNumberInMember(c *http.Request) error {
 }
 
 // member group delete popup
-func (a Memberauth) MemberDeletePopup(c *http.Request) (member TblMember, err1 error) {
+func (a Memberauth) MemberDeletePopup(id int) (member TblMember, err1 error) {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -678,8 +658,6 @@ func (a Memberauth) MemberDeletePopup(c *http.Request) (member TblMember, err1 e
 	if check {
 
 		var member TblMember
-
-		id, _ := strconv.Atoi(c.URL.Query().Get("id"))
 
 		if err := a.Authority.DB.Table("tbl_members").Where("member_group_id=? and is_deleted = 0", id).Find(&member).Error; err != nil {
 
@@ -737,7 +715,7 @@ func (a Memberauth) MemberIsActive(c *http.Request) error {
 
 func (a Memberauth) GetMemberDetails(c *http.Request) (members TblMember, err error) {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -769,9 +747,9 @@ func (a Memberauth) GetMemberDetails(c *http.Request) (members TblMember, err er
 
 }
 
-func (a Memberauth) GetMemberById(c *http.Request) (membergroup TblMemberGroup, err error) {
+func (a Memberauth) GetMemberById(id int) (membergroup TblMemberGroup, err error) {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -788,8 +766,6 @@ func (a Memberauth) GetMemberById(c *http.Request) (membergroup TblMemberGroup, 
 	if check {
 
 		var membergroup TblMemberGroup
-
-		id, _ := strconv.Atoi(c.URL.Query().Get("id"))
 
 		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", id).First(&membergroup).Error; err != nil {
 
@@ -818,7 +794,7 @@ func CreateMemberToken(userid, roleid int, secretkey string) (string, error) {
 }
 
 /*Member login*/
-func CheckMemberLogin(c http.Request, db gorm.DB, secretkey string) (string, error) {
+func CheckMemberLogin(c *http.Request, db *gorm.DB, secretkey string) (string, error) {
 
 	username := c.PostFormValue("username")
 
@@ -882,9 +858,9 @@ func VerifyToken(token string, secret string) (memberid, groupid int, err error)
 
 // Check Name is already exits or not
 
-func (a Memberauth) CheckNameInMember(c *http.Request) error {
+func (a Memberauth) CheckNameInMember(id int, name string) error {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -902,19 +878,15 @@ func (a Memberauth) CheckNameInMember(c *http.Request) error {
 
 		var member TblMember
 
-		userid, _ := strconv.Atoi(c.PostFormValue("id"))
+		if id == 0 {
 
-		membername := c.PostFormValue("mem_usrname")
-
-		if userid == 0 {
-
-			if err := a.Authority.DB.Table("tbl_members").Where("mem_usrname = ? and is_deleted = 0", membername).First(&member).Error; err != nil {
+			if err := a.Authority.DB.Table("tbl_members").Where("username = ? and is_deleted = 0", name).First(&member).Error; err != nil {
 
 				return err
 			}
 		} else {
 
-			if err := a.Authority.DB.Table("tbl_members").Where("mem_usrname = ? and id not in (?) and is_deleted = 0", membername, userid).First(&member).Error; err != nil {
+			if err := a.Authority.DB.Debug().Table("tbl_members").Where("username = ? and id not in (?) and is_deleted = 0", name, id).First(&member).Error; err != nil {
 
 				return err
 			}
