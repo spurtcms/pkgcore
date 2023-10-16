@@ -16,6 +16,10 @@ type TeamAuth struct {
 	Authority *auth.Authority
 }
 
+type Team struct{}
+
+var TM Team
+
 func MigrateTables(db *gorm.DB) {
 
 	db.AutoMigrate(TblUser{})
@@ -43,7 +47,7 @@ func hashingPassword(pass string) string {
 }
 
 /*List*/
-func (a *TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUser, totoaluser int64, err error) {
+func (a TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUser, totoaluser int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -65,11 +69,11 @@ func (a *TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUse
 
 		flg := false
 
-		UserList, _ := GetUsersList(&users, offset, limit, filter, flg, a.Authority.DB)
+		UserList, _ := TM.GetUsersList(&users, offset, limit, filter, flg, a.Authority.DB)
 
 		var userscoount []TblUser
 
-		_, usercount := GetUsersList(&userscoount, 0, 0, filter, flg, a.Authority.DB)
+		_, usercount := TM.GetUsersList(&userscoount, 0, 0, filter, flg, a.Authority.DB)
 
 		return UserList, usercount, nil
 
@@ -79,7 +83,7 @@ func (a *TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUse
 }
 
 /*User Creation*/
-func (a *TeamAuth) CreateUser(teamcreate TeamCreate) error {
+func (a TeamAuth) CreateUser(teamcreate TeamCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -134,7 +138,7 @@ func (a *TeamAuth) CreateUser(teamcreate TeamCreate) error {
 
 		user.CreatedBy = userid
 
-		err := CreateUser(&user, a.Authority.DB)
+		err := TM.CreateUser(&user, a.Authority.DB)
 
 		if err != nil {
 
@@ -150,7 +154,7 @@ func (a *TeamAuth) CreateUser(teamcreate TeamCreate) error {
 }
 
 // Update User
-func (a *TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
+func (a TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -227,7 +231,7 @@ func (a *TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 }
 
 // Delete User
-func (a *TeamAuth) DeleteUser(id int) error {
+func (a TeamAuth) DeleteUser(id int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -253,7 +257,7 @@ func (a *TeamAuth) DeleteUser(id int) error {
 
 		user.IsDeleted = 1
 
-		err := DeleteUser(&user, a.Authority.DB)
+		err := TM.DeleteUser(&user, a.Authority.DB)
 
 		if err != nil {
 
@@ -269,7 +273,7 @@ func (a *TeamAuth) DeleteUser(id int) error {
 }
 
 // check email
-func (a *TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
+func (a TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -280,7 +284,7 @@ func (a *TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
 
 	var user TblUser
 
-	err := CheckEmail(&user, Email, userid, a.Authority.DB)
+	err := TM.CheckEmail(&user, Email, userid, a.Authority.DB)
 
 	if err != nil {
 
@@ -291,7 +295,7 @@ func (a *TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
 }
 
 // check mobile
-func (a *TeamAuth) CheckNumber(mobile string, userid int) (bool, error) {
+func (a TeamAuth) CheckNumber(mobile string, userid int) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -302,7 +306,7 @@ func (a *TeamAuth) CheckNumber(mobile string, userid int) (bool, error) {
 
 	var user TblUser
 
-	err := CheckNumber(&user, mobile, userid, a.Authority.DB)
+	err := TM.CheckNumber(&user, mobile, userid, a.Authority.DB)
 
 	if err != nil {
 
@@ -313,7 +317,7 @@ func (a *TeamAuth) CheckNumber(mobile string, userid int) (bool, error) {
 }
 
 // check username
-func (a *TeamAuth) CheckUsername(username string, userid int) (bool, error) {
+func (a TeamAuth) CheckUsername(username string, userid int) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -324,7 +328,7 @@ func (a *TeamAuth) CheckUsername(username string, userid int) (bool, error) {
 
 	var user TblUser
 
-	err := CheckUsername(&user, username, userid, a.Authority.DB)
+	err := TM.CheckUsername(&user, username, userid, a.Authority.DB)
 
 	if err != nil {
 

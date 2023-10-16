@@ -121,12 +121,13 @@ type Filter struct {
 
 type Permission struct {
 	ModuleName string
-	Action     []string //create,edit,update,delete
+	Action     []string //create,View,update,delete
 
 }
 
 type MultiPermissin struct {
 	RoleId      int
+	Ids         []int
 	Permissions []Permission
 }
 
@@ -136,7 +137,7 @@ type RoleCreation struct {
 }
 
 /*get all roles*/
-func GetAllRoles(role *[]TblRole, limit, offset int, filter Filter, DB *gorm.DB) (rolecount int64, err error) {
+func (as Authstruct) GetAllRoles(role *[]TblRole, limit, offset int, filter Filter, DB *gorm.DB) (rolecount int64, err error) {
 
 	query := DB.Table("tbl_roles").Where("is_deleted = 0").Order("id desc")
 
@@ -160,7 +161,7 @@ func GetAllRoles(role *[]TblRole, limit, offset int, filter Filter, DB *gorm.DB)
 }
 
 // Roels Insert
-func RoleCreate(role *TblRole, DB *gorm.DB) error {
+func (as Authstruct) RoleCreate(role *TblRole, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_roles").Create(role).Error; err != nil {
 
@@ -171,7 +172,7 @@ func RoleCreate(role *TblRole, DB *gorm.DB) error {
 }
 
 // Delete the role data
-func RoleDelete(role *TblRole, id int, DB *gorm.DB) error {
+func (as Authstruct) RoleDelete(role *TblRole, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_roles").Where("id = ?", id).Update("is_deleted", 1).Error; err != nil {
 
@@ -183,7 +184,7 @@ func RoleDelete(role *TblRole, id int, DB *gorm.DB) error {
 }
 
 /**/
-func RoleUpdate(role *TblRole, DB *gorm.DB) error {
+func (as Authstruct) RoleUpdate(role *TblRole, DB *gorm.DB) error {
 
 	if err := DB.Model(&role).Where("id=?", role.Id).Updates(TblRole{Name: role.Name, Description: role.Description, Slug: role.Slug, IsActive: role.IsActive, IsDeleted: role.IsDeleted, ModifiedOn: role.ModifiedOn, ModifiedBy: role.ModifiedBy}).Error; err != nil {
 
@@ -193,7 +194,7 @@ func RoleUpdate(role *TblRole, DB *gorm.DB) error {
 	return nil
 }
 
-func CheckPermissionIdNotExist(roleperm *[]TblRolePermission, roleid int, permissionid []int, DB *gorm.DB) error {
+func (as Authstruct) CheckPermissionIdNotExist(roleperm *[]TblRolePermission, roleid int, permissionid []int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_role_permissions").Where("role_id=? and permission_id not in(?)", roleid, permissionid).Find(&roleperm).Error; err != nil {
 
@@ -204,7 +205,7 @@ func CheckPermissionIdNotExist(roleperm *[]TblRolePermission, roleid int, permis
 }
 
 /*bulk creation*/
-func CreateRolePermission(roleper *[]TblRolePermission, DB *gorm.DB) error {
+func (as Authstruct) CreateRolePermission(roleper *[]TblRolePermission, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_role_permissions").Create(&roleper).Error; err != nil {
 
@@ -215,7 +216,7 @@ func CreateRolePermission(roleper *[]TblRolePermission, DB *gorm.DB) error {
 	return nil
 }
 
-func CheckPermissionIdExist(roleperm *[]TblRolePermission, roleid int, permissionid []int, DB *gorm.DB) error {
+func  (as Authstruct)CheckPermissionIdExist(roleperm *[]TblRolePermission, roleid int, permissionid []int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_role_permissions").Where("role_id=? and permission_id in(?)", roleid, permissionid).Find(&roleperm).Error; err != nil {
 
@@ -225,7 +226,7 @@ func CheckPermissionIdExist(roleperm *[]TblRolePermission, roleid int, permissio
 	return nil
 }
 
-func DeleteRolePermissionById(roleper *[]TblRolePermission, roleid int, DB *gorm.DB) error {
+func (as Authstruct) DeleteRolePermissionById(roleper *[]TblRolePermission, roleid int, DB *gorm.DB) error {
 
 	if err := DB.Where("role_id=?", roleid).Delete(&roleper).Error; err != nil {
 

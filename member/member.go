@@ -732,9 +732,7 @@ func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 	// if check {
 
 	var member TblMember
-
-	fmt.Println("sfd", id)
-
+	
 	if err := a.Authority.DB.Table("tbl_members").Where("id=?", id).First(&member).Error; err != nil {
 
 		return TblMember{}, err

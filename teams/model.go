@@ -60,7 +60,7 @@ type TeamCreate struct{
 	MobileNo             string
 }
 
-func CreateUser(user *TblUser, DB *gorm.DB) error {
+func (t Team) CreateUser(user *TblUser, DB *gorm.DB) error {
 
 	if err := DB.Create(&user).Error; err != nil {
 
@@ -71,7 +71,7 @@ func CreateUser(user *TblUser, DB *gorm.DB) error {
 	return nil
 }
 
-func GetRolesData(roles *[]auth.TblRole, DB *gorm.DB) error {
+func (t Team) GetRolesData(roles *[]auth.TblRole, DB *gorm.DB) error {
 
 	if err := DB.Where("is_deleted=? and is_active=1", 0).Find(&roles).Error; err != nil {
 
@@ -82,7 +82,7 @@ func GetRolesData(roles *[]auth.TblRole, DB *gorm.DB) error {
 	return nil
 }
 
-func GetUsersList(users *[]TblUser, offset, limit int, filter Filters, flag bool, DB *gorm.DB) ([]TblUser, int64) {
+func (t Team) GetUsersList(users *[]TblUser, offset, limit int, filter Filters, flag bool, DB *gorm.DB) ([]TblUser, int64) {
 
 	var Total_users int64
 
@@ -121,7 +121,7 @@ func GetUsersList(users *[]TblUser, offset, limit int, filter Filters, flag bool
 
 }
 
-func GetUserDetails(user *TblUser, id int, DB *gorm.DB) error {
+func (t Team) GetUserDetails(user *TblUser, id int, DB *gorm.DB) error {
 
 	if err := DB.Where("id=?", id).First(&user).Error; err != nil {
 
@@ -130,7 +130,7 @@ func GetUserDetails(user *TblUser, id int, DB *gorm.DB) error {
 	return nil
 }
 
-func UpdateUser(user *TblUser, imgdata string, DB *gorm.DB) error {
+func (t Team)UpdateUser(user *TblUser, imgdata string, DB *gorm.DB) error {
 
 	query := DB.Table("tbl_users").Where("id=?", user.Id)
 
@@ -166,7 +166,7 @@ func UpdateUser(user *TblUser, imgdata string, DB *gorm.DB) error {
 	return nil
 }
 
-func DeleteUser(user *TblUser, DB *gorm.DB) error {
+func (t Team) DeleteUser(user *TblUser, DB *gorm.DB) error {
 
 	if err := DB.Model(&user).Where("id=?", user.Id).Updates(TblUser{IsDeleted: user.IsDeleted, DeletedOn: user.DeletedOn, DeletedBy: user.DeletedBy}).Error; err != nil {
 
@@ -176,7 +176,7 @@ func DeleteUser(user *TblUser, DB *gorm.DB) error {
 	return nil
 }
 
-func CheckEmail(user *TblUser, email string, userid int, DB *gorm.DB) error {
+func (t Team) CheckEmail(user *TblUser, email string, userid int, DB *gorm.DB) error {
 
 	if userid == 0 {
 		if err := DB.Table("tbl_users").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and is_deleted = 0 ", email).First(&user).Error; err != nil {
@@ -192,7 +192,7 @@ func CheckEmail(user *TblUser, email string, userid int, DB *gorm.DB) error {
 	return nil
 }
 
-func CheckNumber(user *TblUser, mobile string, userid int, DB *gorm.DB) error {
+func (t Team) CheckNumber(user *TblUser, mobile string, userid int, DB *gorm.DB) error {
 	if userid == 0 {
 		if err := DB.Table("tbl_users").Where("mobile_no = ? and is_deleted=0", mobile).First(&user).Error; err != nil {
 
@@ -209,7 +209,7 @@ func CheckNumber(user *TblUser, mobile string, userid int, DB *gorm.DB) error {
 	return nil
 }
 
-func CheckUsername(user *TblUser, username string, userid int, DB *gorm.DB) error {
+func (t Team) CheckUsername(user *TblUser, username string, userid int, DB *gorm.DB) error {
 	if userid == 0 {
 		if err := DB.Table("tbl_users").Where("username = ? and is_deleted=0", username).First(&user).Error; err != nil {
 

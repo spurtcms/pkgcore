@@ -10,6 +10,10 @@ type AccessAuth struct {
 	Authority auth.Authority
 }
 
+type AccessType struct{}
+
+var AT AccessType
+
 func MigrateTables(db *gorm.DB) {
 	db.AutoMigrate(
 		&TblAccessControl{},
@@ -45,7 +49,7 @@ func (a AccessAuth) GetSpace() (spaceid []int, err error) {
 
 	var TblaccessControlusergroup []TblAccessControlUserGroup
 
-	err = GetSpaceByMemberId(&TblaccessControlusergroup, Groupid,a.Authority.DB)
+	err = AT.GetSpaceByMemberId(&TblaccessControlusergroup, Groupid, a.Authority.DB)
 
 	if err != nil {
 
@@ -56,7 +60,7 @@ func (a AccessAuth) GetSpace() (spaceid []int, err error) {
 
 	for _, val := range TblaccessControlusergroup {
 
-		spid = append(spid, val.SpacesId...)
+		spid = append(spid, val.SpacesId)
 	}
 
 	return spid, nil
@@ -74,7 +78,7 @@ func (a AccessAuth) GetPage() (pageid []int, err error) {
 
 	var TblaccessControlusergroup []TblAccessControlUserGroup
 
-	err = GetPageByMemberId(&TblaccessControlusergroup, groupid,a.Authority.DB)
+	err = AT.GetPageByMemberId(&TblaccessControlusergroup, groupid, a.Authority.DB)
 
 	if err != nil {
 
@@ -85,7 +89,7 @@ func (a AccessAuth) GetPage() (pageid []int, err error) {
 
 	for _, val := range TblaccessControlusergroup {
 
-		pageids = append(pageids, val.PagesId...)
+		pageids = append(pageids, val.PageId)
 	}
 
 	return pageids, nil
@@ -104,7 +108,7 @@ func (a AccessAuth) GetGroup() (pagegroupid []int, err error) {
 
 	var TblaccessControlusergroup []TblAccessControlUserGroup
 
-	err = GetGroupByMemberId(&TblaccessControlusergroup, groupid,a.Authority.DB)
+	err = AT.GetGroupByMemberId(&TblaccessControlusergroup, groupid, a.Authority.DB)
 
 	if err != nil {
 
@@ -115,7 +119,7 @@ func (a AccessAuth) GetGroup() (pagegroupid []int, err error) {
 
 	for _, val := range TblaccessControlusergroup {
 
-		pgroupid = append(pgroupid, val.GroupsId...)
+		pgroupid = append(pgroupid, val.GroupId)
 	}
 
 	return pgroupid, nil

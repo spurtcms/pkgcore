@@ -42,14 +42,14 @@ type TblAccessControlUserGroup struct {
 	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
 	IsDeleted       int
 	DeletedOn       time.Time `gorm:"DEFAULT:NULL"`
-	SpacesId        []int     `gorm:"<-:false"`
-	PagesId         []int     `gorm:"<-:false"`
-	GroupsId        []int     `gorm:"<-:false"`
+	SpacesId        int       `gorm:"<-:false"`
+	PageId         int       `gorm:"<-:false"`
+	GroupId        int       `gorm:"<-:false"`
 }
 
-func GetSpaceByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid int, DB *gorm.DB) error {
+func (at AccessType)GetSpaceByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_user_group").Select("tbl_access_control_user_group.*tbl_access_control_pages.spaces_id as SpacesId").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id =tbl_access_control_user_group.id").Where("member_group_id=?", membergroupid).Group("space_id").Find(&tblaccess).Error; err != nil {
+	if err := DB.Table("tbl_access_control_user_group").Select("tbl_access_control_pages.spaces_id as SpacesId").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id =tbl_access_control_user_group.id").Where("member_group_id=?", membergroupid).Group("spaces_id").Find(&tblaccess).Error; err != nil {
 
 		return err
 	}
@@ -57,18 +57,18 @@ func GetSpaceByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid in
 
 }
 
-func GetPageByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid int, DB *gorm.DB) error {
+func (at AccessType) GetPageByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_user_group").Select("tbl_access_control_user_group.*tbl_access_control_pages.page_id as PagesId").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id =tbl_access_control_user_group.id").Where("member_group_id=?", membergroupid).Group("member_group_id").Find(&tblaccess).Error; err != nil {
+	if err := DB.Debug().Table("tbl_access_control_user_group").Select("tbl_access_control_pages.page_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id =tbl_access_control_user_group.id").Where("member_group_id=?", membergroupid).Find(&tblaccess).Error; err != nil {
 
 		return err
 	}
 	return nil
 }
 
-func GetGroupByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid int, DB *gorm.DB) error {
+func (at AccessType) GetGroupByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_user_group").Select("tbl_access_control_user_group.*tbl_access_control_pages.page_group_id as GroupsId").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id =tbl_access_control_user_group.id").Where("member_group_id=?", membergroupid).Group("member_group_id").Find(&tblaccess).Error; err != nil {
+	if err := DB.Table("tbl_access_control_user_group").Select("tbl_access_control_pages.page_group_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id =tbl_access_control_user_group.id").Where("member_group_id=?", membergroupid).Find(&tblaccess).Error; err != nil {
 
 		return err
 	}

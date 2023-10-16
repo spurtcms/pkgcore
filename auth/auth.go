@@ -25,6 +25,9 @@ type Role struct {
 	Auth Authority
 }
 
+type Authstruct struct{}
+var AS Authstruct
+
 type Option struct {
 	DB     *gorm.DB
 	Token  string
@@ -160,11 +163,11 @@ func (a Role) RoleList(limit int, offset int, filter Filter) (roles []TblRole, r
 
 		var role []TblRole
 
-		GetAllRoles(&role, limit, offset, filter, a.Auth.DB)
+		AS.GetAllRoles(&role, limit, offset, filter, a.Auth.DB)
 
 		var roleco []TblRole
 
-		rolecounts, _ := GetAllRoles(&roleco, limit, offset, filter, a.Auth.DB)
+		rolecounts, _ := AS.GetAllRoles(&roleco, limit, offset, filter, a.Auth.DB)
 
 		return role, rolecounts, nil
 	}
@@ -203,7 +206,7 @@ func (a Role) CreateRole(rolec RoleCreation) error {
 
 		role.CreatedBy = userid
 
-		err := RoleCreate(&role, a.Auth.DB)
+		err := AS.RoleCreate(&role, a.Auth.DB)
 
 		if err != nil {
 
@@ -246,7 +249,7 @@ func (a Role) UpdateRole(rolec RoleCreation, roleid int) (err error) {
 
 		role.ModifiedBy = userid
 
-		err1 := RoleUpdate(&role, a.Auth.DB)
+		err1 := AS.RoleUpdate(&role, a.Auth.DB)
 
 		if err1 != nil {
 
@@ -279,7 +282,7 @@ func (a Role) DeleteRole(roleid int) (err error) {
 
 		var role TblRole
 
-		err1 := RoleDelete(&role, roleid, a.Auth.DB)
+		err1 := AS.RoleDelete(&role, roleid, a.Auth.DB)
 
 		if err != nil {
 
@@ -311,7 +314,7 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 
 		var checknotexist []TblRolePermission
 
-		cnerr := CheckPermissionIdNotExist(&checknotexist, Perm.RoleId, []int{}, a.DB)
+		cnerr := AS.CheckPermissionIdNotExist(&checknotexist, Perm.RoleId, Perm.Ids, a.DB)
 
 		if cnerr != nil {
 
@@ -319,12 +322,12 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 
 		} else if len(checknotexist) != 0 {
 
-			DeleteRolePermissionById(&checknotexist, Perm.RoleId, a.DB)
+			AS.DeleteRolePermissionById(&checknotexist, Perm.RoleId, a.DB)
 		}
 
 		var checkexist []TblRolePermission
 
-		cerr := CheckPermissionIdExist(&checkexist, Perm.RoleId, []int{}, a.DB)
+		cerr := AS.CheckPermissionIdExist(&checkexist, Perm.RoleId, Perm.Ids, a.DB)
 
 		if cerr != nil {
 
@@ -362,7 +365,7 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 
 			if len(createrolepermission) != 0 {
 
-				CreateRolePermission(&createrolepermission, a.DB)
+				AS.CreateRolePermission(&createrolepermission, a.DB)
 
 			}
 
