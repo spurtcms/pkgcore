@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
@@ -26,6 +25,7 @@ type Role struct {
 }
 
 type Authstruct struct{}
+
 var AS Authstruct
 
 type Option struct {
@@ -110,11 +110,11 @@ func VerifyToken(token string, secret string) (userid, roleid int, err error) {
 }
 
 // Check UserName Password
-func Checklogin(c *http.Request, db *gorm.DB, secretkey string) (string, error) {
+func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, error) {
 
-	username := c.PostFormValue("username")
+	username := Lc.Username
 
-	password := c.PostFormValue("pass")
+	password := Lc.Password
 
 	var user TblUser
 
@@ -379,46 +379,89 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 	return nil
 }
 
-// Create permissionforrole
-func (a Authority) AssignPermissionforRole() error {
+// permission List
+func (a Authority) PermissionListRoleId(limit, offset, roleid int, filter Filter) (Module []TblModule, count int64, err error) {
 
-	userid, roleid, checkerr := VerifyToken(a.Token, a.Secret)
+	_, _, checkerr := VerifyToken(a.Token, a.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return []TblModule{}, 0, checkerr
 	}
 
 	check, err := a.IsGranted("Permissions", CRUD)
 
 	if err != nil {
 
-		return err
+		return []TblModule{}, 0, err
 	}
 
 	if check {
 
-		var createmod TblRolePermission
+		var allmodule []TblModule
 
-		createmod.PermissionId = 1
+		var allmodules []TblModule
 
-		createmod.RoleId = roleid
+		GetAllModules(&allmodule, limit, offset, roleid, filter, a.DB)
 
-		createmod.CreatedBy = userid
+		for _, val := range allmodule {
 
-		createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			var newmod TblModule
 
-		if err := a.DB.Table("tbl_role_permissions").Create(&createmod).Error; err != nil {
+			newmod.Id = val.Id
 
-			return err
+			newmod.Description = val.Description
+
+			newmod.CreatedBy = val.CreatedBy
+
+			newmod.ModuleName = val.ModuleName
+
+			newmod.IsActive = val.IsActive
+
+			newmod.CreatedDate = val.CreatedOn.In(IST).Format("02 Jan 2006 03:04 PM")
+
+			for _, val1 := range val.TblModulePermission {
+
+				var modper TblModulePermission
+
+				modper.Id = val1.Id
+
+				modper.Description = val1.Description
+
+				modper.DisplayName = val1.DisplayName
+
+				modper.ModuleName = val1.ModuleName
+
+				modper.RouteName = val1.RouteName
+
+				modper.CreatedBy = val1.CreatedBy
+
+				modper.Description = val1.Description
+
+				modper.TblRolePermission = val1.TblRolePermission
+
+				modper.CreatedDate = val.CreatedOn.In(IST).Format("2006-01-02 15:04:05")
+
+				modper.FullAccessPermission = val1.FullAccessPermission
+
+				newmod.TblModulePermission = append(newmod.TblModulePermission, modper)
+			}
+
+			allmodules = append(allmodules, newmod)
 
 		}
+
+		var allmodul []TblModule
+
+		Totalcount := GetAllModules(&allmodul, 0, 0, roleid, filter, a.DB)
+
+		return allmodules, Totalcount, nil
+
 	} else {
 
-		return errors.New("not authorized")
+		return []TblModule{}, 0, errors.New("not authorized")
 	}
 
-	return nil
 }
 
 // Check User Permission
@@ -460,7 +503,7 @@ func (a Authority) IsGranted(modulename string, permisison Action) (bool, error)
 
 	if permisison == "CRUD" {
 
-		if err := a.DB.Debug().Table("tbl_module_permissions").Where("module_id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete'", modid).Find(&modulepermission).Error; err != nil {
+		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete)'", modid).Find(&modulepermission).Error; err != nil {
 
 			return false, err
 		}

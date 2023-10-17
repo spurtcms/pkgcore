@@ -119,7 +119,7 @@ func (a AccessAuth) GetGroup() (pagegroupid []int, err error) {
 
 	for _, val := range TblaccessControlusergroup {
 
-		pgroupid = append(pgroupid, val.GroupId)
+		pgroupid = append(pgroupid, val.PageGroupId)
 	}
 
 	return pgroupid, nil

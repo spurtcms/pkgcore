@@ -134,6 +134,10 @@ func (a TeamAuth) CreateUser(teamcreate TeamCreate) error {
 
 		user.DataAccess = teamcreate.DataAccess
 
+		user.ProfileImage = teamcreate.ProfileImage
+
+		user.ProfileImagePath = teamcreate.ProfileImagePath
+
 		user.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
 		user.CreatedBy = userid
@@ -202,6 +206,10 @@ func (a TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 	user.IsActive = teamcreate.IsActive
 
 	user.DataAccess = teamcreate.DataAccess
+
+	user.ProfileImage = teamcreate.ProfileImage
+
+	user.ProfileImagePath = teamcreate.ProfileImagePath
 
 	query := a.Authority.DB.Table("tbl_users").Where("id=?", user.Id)
 

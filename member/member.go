@@ -1,13 +1,8 @@
 package member
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"image"
-	"io"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -31,6 +26,10 @@ type Image struct {
 	Size        int
 }
 
+type Authstruct struct{}
+
+var AS Authstruct
+
 func MigrateTables(db *gorm.DB) {
 
 	db.AutoMigrate(&TblMemberGroup{}, &TblMember{})
@@ -49,16 +48,8 @@ func MigrateTables(db *gorm.DB) {
 
 }
 
-type Filters struct {
-	Keyword  string
-	Category string
-	Status   string
-	FromDate string
-	ToDate   string
-}
-
 /*List member group*/
-func (a Memberauth) ListMemberGroup(offset, limit int, filter Filters) (membergroup []TblMemberGroup, MemberGroupCount int64, err error) {
+func (a Memberauth) ListMemberGroup(offset, limit int, filter Filter) (membergroup []TblMemberGroup, MemberGroupCount int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -71,31 +62,37 @@ func (a Memberauth) ListMemberGroup(offset, limit int, filter Filters) (membergr
 
 	if check {
 
-		var TotalMemberGroup int64
+		if err != nil {
 
-		var membergroup []TblMemberGroup
+			return []TblMemberGroup{}, 0, err
+		}
 
-		query := a.Authority.DB.Table("tbl_member_group").Where("is_deleted = 0").Order("id desc")
+		var membergrplist []TblMemberGroup
 
-		if filter.Keyword != "" {
+		AS.MemberGroupList(membergrplist, limit, offset, filter, a.Authority.DB)
 
-			query = query.Where("LOWER(TRIM(name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+		_, membercounts, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, a.Authority.DB)
+
+		membergrouplist, _, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, a.Authority.DB)
+
+		var membergrouplists []TblMemberGroup
+
+		for _, val := range membergrouplist {
+
+			if !val.ModifiedOn.IsZero() {
+
+				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+			} else {
+				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			}
+
+			membergrouplists = append(membergrouplists, val)
 
 		}
 
-		if limit != 0 {
-
-			query.Limit(limit).Offset(offset).Find(&membergroup)
-
-			return membergroup, 0, err
-
-		} else {
-
-			query.Find(&membergroup).Count(&TotalMemberGroup)
-
-			return membergroup, TotalMemberGroup, err
-		}
-
+		return membergrouplists, membercounts, nil
 	}
 	return []TblMemberGroup{}, 0, errors.New("not authorized")
 
@@ -136,7 +133,7 @@ func (a Memberauth) GetGroupData() (membergrouplists []TblMemberGroup, err error
 }
 
 /*Create Member Group*/
-func (a Memberauth) CreateMemberGroup(c *http.Request) error {
+func (a Memberauth) CreateMemberGroup(membergrpc MemberGroupCreation) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -154,18 +151,18 @@ func (a Memberauth) CreateMemberGroup(c *http.Request) error {
 
 	if check {
 
-		if c.PostFormValue("membergroup_name") == "" || c.PostFormValue("membergroup_desc") == "" {
+		if membergrpc.Name == "" || membergrpc.Description == "" {
 
 			return errors.New("given value is empty")
 		}
 
 		var membergroup TblMemberGroup
 
-		membergroup.Name = c.PostFormValue("membergroup_name")
+		membergroup.Name = membergrpc.Name
 
-		membergroup.Slug = strings.ToLower(c.PostFormValue("membergroup_name"))
+		membergroup.Slug = strings.ToLower(membergrpc.Name)
 
-		membergroup.Description = c.PostFormValue("membergroup_desc")
+		membergroup.Description = membergrpc.Description
 
 		membergroup.CreatedBy = userid
 
@@ -173,7 +170,9 @@ func (a Memberauth) CreateMemberGroup(c *http.Request) error {
 
 		membergroup.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		if err := a.Authority.DB.Table("tbl_member_group").Create(&membergroup).Error; err != nil {
+		err := AS.MemberGroupCreate(&membergroup, a.Authority.DB)
+
+		if err != nil {
 
 			return err
 		}
@@ -187,7 +186,7 @@ func (a Memberauth) CreateMemberGroup(c *http.Request) error {
 }
 
 /*Update Member Group*/
-func (a Memberauth) UpdateMemberGroup(c *http.Request, id int) error {
+func (a Memberauth) UpdateMemberGroup(membergrpc MemberGroupCreation, id int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -202,29 +201,28 @@ func (a Memberauth) UpdateMemberGroup(c *http.Request, id int) error {
 
 		return err
 	}
-
 	if check {
 
-		if c.PostFormValue("membergroup_name") == "" || c.PostFormValue("membergroup_desc") == "" {
+		if membergrpc.Name == "" || membergrpc.Description == "" {
 
 			return errors.New("given value is empty")
 		}
 
 		var membergroup TblMemberGroup
 
-		membergroup.Id = id
+		membergroup.Name = membergrpc.Name
 
-		membergroup.Name = c.PostFormValue("membergroup_name")
+		membergroup.Slug = strings.ToLower(membergrpc.Name)
 
-		membergroup.Slug = strings.ToLower(c.PostFormValue("membergroup_name"))
-
-		membergroup.Description = c.PostFormValue("membergroup_desc")
+		membergroup.Description = membergrpc.Description
 
 		membergroup.ModifiedBy = userid
 
 		membergroup.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", membergroup.Id).Updates(TblMemberGroup{Name: membergroup.Name, Slug: membergroup.Slug, Description: membergroup.Description, Id: membergroup.Id, ModifiedOn: membergroup.ModifiedOn, ModifiedBy: membergroup.ModifiedBy}).Error; err != nil {
+		err := AS.MemberGroupUpdate(&membergroup, id, a.Authority.DB)
+
+		if err != nil {
 
 			return err
 		}
@@ -258,18 +256,17 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 
 		var membergroup TblMemberGroup
 
-		membergroup.IsDeleted = 1
-
 		if id <= 0 {
 
 			return errors.New("invalid id cannot delete")
 
 		}
 
-		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", id).Updates(TblMemberGroup{IsDeleted: membergroup.IsDeleted}).Error; err != nil {
+		err1 := AS.MemberGroupDelete(&membergroup, id, a.Authority.DB)
 
-			return err
+		if err != nil {
 
+			return err1
 		}
 
 	} else {
@@ -280,7 +277,7 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 }
 
 // list member
-func (a Memberauth) ListMembers(offset, limit int, filter Filters, flag bool) (member []TblMember, totoalmember int64, err error) {
+func (a Memberauth) ListMembers(offset, limit int, filter Filter, flag bool) (member []TblMember, totoalmember int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -311,7 +308,7 @@ func (a Memberauth) ListMembers(offset, limit int, filter Filters, flag bool) (m
 
 		}
 
-		if limit != 0 && !flag{
+		if limit != 0 && !flag {
 
 			query.Offset(offset).Limit(limit).Order("id desc").Find(&member)
 
@@ -330,7 +327,7 @@ func (a Memberauth) ListMembers(offset, limit int, filter Filters, flag bool) (m
 }
 
 // Create Member
-func (a Memberauth) CreateMember(c *http.Request, imagename string, imagepath string) error {
+func (a Memberauth) CreateMember(Mc MemberCreation) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -354,29 +351,28 @@ func (a Memberauth) CreateMember(c *http.Request, imagename string, imagepath st
 
 		member.Uuid = uvuid
 
-		member.ProfileImage = imagename
+		member.ProfileImage = Mc.ProfileImage
 
-		member.ProfileImagePath = imagepath
+		member.ProfileImagePath = Mc.ProfileImagePath
 
-		member.MemberGroupId, _ = strconv.Atoi(c.PostFormValue("mem_group"))
+		member.MemberGroupId = Mc.GroupId
 
-		member.FirstName = c.PostFormValue("mem_name")
+		member.FirstName = Mc.FirstName
 
-		member.LastName = c.PostFormValue("mem_lname")
+		member.LastName = Mc.LastName
 
-		member.Email = c.PostFormValue("mem_email")
+		member.Email = Mc.Email
 
-		member.MobileNo = c.PostFormValue("mem_mobile")
+		member.MobileNo = Mc.MobileNo
 
-		member.IsActive, _ = strconv.Atoi(c.PostFormValue("mem_activestat"))
+		member.IsActive = Mc.IsActive
 
-		member.Username = c.PostFormValue("mem_usrname")
+		member.Username = Mc.Username
 
-		password := c.PostFormValue("mem_pass")
+		if Mc.Password != "" {
 
-		if password != "" {
+			hash_pass := hashingPassword(Mc.Password)
 
-			hash_pass := hashingPassword(password)
 			member.Password = hash_pass
 
 		}
@@ -401,7 +397,7 @@ func (a Memberauth) CreateMember(c *http.Request, imagename string, imagepath st
 }
 
 // Update Member
-func (a Memberauth) UpdateMember(c *http.Request, id int, imageName string, imagePath string) error {
+func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -427,31 +423,32 @@ func (a Memberauth) UpdateMember(c *http.Request, id int, imageName string, imag
 
 		member.Id = id
 
-		member.MemberGroupId, _ = strconv.Atoi(c.PostFormValue("mem_group"))
+		member.MemberGroupId = Mc.GroupId
 
-		member.FirstName = c.PostFormValue("mem_name")
+		member.FirstName = Mc.FirstName
 
-		member.LastName = c.PostFormValue("mem_lname")
+		member.LastName = Mc.LastName
 
-		member.Email = c.PostFormValue("mem_email")
+		member.Email = Mc.Email
 
-		member.MobileNo = c.PostFormValue("mem_mobile")
+		member.MobileNo = Mc.MobileNo
 
-		member.ProfileImage = imageName
+		member.ProfileImage = Mc.ProfileImage
 
-		member.ProfileImagePath = imagePath
+		member.ProfileImagePath = Mc.ProfileImagePath
 
-		member.IsActive, _ = strconv.Atoi(c.PostFormValue("mem_activestat"))
+		member.IsActive = Mc.IsActive
 
 		member.ModifiedBy = userid
 
-		member.Username = c.PostFormValue("mem_usrname")
+		member.Username = Mc.Username
 
-		password := c.PostFormValue("mem_pass")
+		password := Mc.Password
 
 		if password != "" {
 
 			hash_pass := hashingPassword(password)
+
 			member.Password = hash_pass
 
 		}
@@ -519,48 +516,7 @@ func (a Memberauth) DeleteMember(id int) error {
 	return nil
 }
 
-func okContentType(contentType string) bool {
-	return contentType == "image/png" || contentType == "image/jpeg"
-}
-
-// Process uploaded file into an image.
-func Process(r http.Request, field string) (Image, error) {
-	file, info, err := r.FormFile(field)
-
-	if err != nil {
-		return Image{}, err
-	}
-
-	contentType := info.Header.Get("Content-Type")
-
-	if !okContentType(contentType) {
-		return Image{}, errors.New(fmt.Sprintf("Wrong content type: %s", contentType))
-	}
-
-	bs, err := io.ReadAll(file)
-
-	if err != nil {
-		return Image{}, err
-	}
-
-	_, _, err = image.Decode(bytes.NewReader(bs))
-
-	if err != nil {
-		return Image{}, err
-	}
-
-	i := &Image{
-		Filename:    info.Filename,
-		ContentType: contentType,
-		Data:        bs,
-		Size:        len(bs),
-	}
-
-	return *i, nil
-}
-
 // Check Email is already exits or not
-
 func (a Memberauth) CheckEmailInMember(id int, email string) error {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -599,7 +555,6 @@ func (a Memberauth) CheckEmailInMember(id int, email string) error {
 }
 
 // Check Number is already exits or not
-
 func (a Memberauth) CheckNumberInMember(id int, number string) error {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -669,8 +624,7 @@ func (a Memberauth) MemberDeletePopup(id int) (member TblMember, err1 error) {
 }
 
 // member is_active
-
-func (a Memberauth) MemberIsActive(c *http.Request) error {
+func (a Memberauth) MemberIsActive(memberid int, status int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -688,17 +642,13 @@ func (a Memberauth) MemberIsActive(c *http.Request) error {
 
 	if check {
 
-		id, _ := strconv.Atoi(c.PostFormValue("id"))
-
-		val, _ := strconv.Atoi(c.PostFormValue("isactive"))
-
 		var memberstatus TblMemberGroup
 
 		memberstatus.ModifiedBy = userid
 
 		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_active": val, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
+		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
 
 			return err
 		}
@@ -710,8 +660,6 @@ func (a Memberauth) MemberIsActive(c *http.Request) error {
 	return nil
 
 }
-
-//
 
 func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 
@@ -732,7 +680,7 @@ func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 	// if check {
 
 	var member TblMember
-	
+
 	if err := a.Authority.DB.Table("tbl_members").Where("id=?", id).First(&member).Error; err != nil {
 
 		return TblMember{}, err
@@ -853,7 +801,6 @@ func VerifyToken(token string, secret string) (memberid, groupid int, err error)
 }
 
 // Check Name is already exits or not
-
 func (a Memberauth) CheckNameInMember(id int, name string) error {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)

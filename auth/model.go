@@ -136,6 +136,11 @@ type RoleCreation struct {
 	Description string
 }
 
+type LoginCheck struct {
+	Username string
+	Password string
+}
+
 /*get all roles*/
 func (as Authstruct) GetAllRoles(role *[]TblRole, limit, offset int, filter Filter, DB *gorm.DB) (rolecount int64, err error) {
 
@@ -216,7 +221,7 @@ func (as Authstruct) CreateRolePermission(roleper *[]TblRolePermission, DB *gorm
 	return nil
 }
 
-func  (as Authstruct)CheckPermissionIdExist(roleperm *[]TblRolePermission, roleid int, permissionid []int, DB *gorm.DB) error {
+func (as Authstruct) CheckPermissionIdExist(roleperm *[]TblRolePermission, roleid int, permissionid []int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_role_permissions").Where("role_id=? and permission_id in(?)", roleid, permissionid).Find(&roleperm).Error; err != nil {
 
@@ -234,4 +239,32 @@ func (as Authstruct) DeleteRolePermissionById(roleper *[]TblRolePermission, role
 
 	}
 	return nil
+}
+
+/*This is for assign permission*/
+func GetAllModules(mod *[]TblModule, limit, offset, id int, filter Filter,DB *gorm.DB) (count int64) {
+
+	query := DB.Table("tbl_modules").Where("parent_id!=0 or assign_permission=1").Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
+		return db.Where("assign_permission =0")
+	}).Preload("TblModulePermission.TblRolePermission", func(db *gorm.DB) *gorm.DB {
+		return db.Where("role_id = ?", id)
+	})
+
+	if filter.Keyword != "" {
+
+		query = query.Where("LOWER(TRIM(module_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+	}
+
+	if limit != 0 {
+
+		query.Limit(limit).Offset(offset).Order("id asc").Find(&mod)
+
+	} else {
+
+		query.Find(&mod).Count(&count)
+
+		return count
+	}
+
+	return 0
 }

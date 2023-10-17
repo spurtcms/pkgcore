@@ -48,16 +48,18 @@ type Filters struct {
 	ToDate   string
 }
 
-type TeamCreate struct{
-	FirstName            string
-	LastName             string
-	RoleId               int
-	Email                string
-	Username             string
-	Password             string
-	IsActive             int
-	DataAccess           int
-	MobileNo             string
+type TeamCreate struct {
+	FirstName        string
+	LastName         string
+	RoleId           int
+	Email            string
+	Username         string
+	Password         string
+	IsActive         int
+	DataAccess       int
+	MobileNo         string
+	ProfileImage     string
+	ProfileImagePath string
 }
 
 func (t Team) CreateUser(user *TblUser, DB *gorm.DB) error {
@@ -130,7 +132,7 @@ func (t Team) GetUserDetails(user *TblUser, id int, DB *gorm.DB) error {
 	return nil
 }
 
-func (t Team)UpdateUser(user *TblUser, imgdata string, DB *gorm.DB) error {
+func (t Team) UpdateUser(user *TblUser, imgdata string, DB *gorm.DB) error {
 
 	query := DB.Table("tbl_users").Where("id=?", user.Id)
 
