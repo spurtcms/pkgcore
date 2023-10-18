@@ -11,7 +11,6 @@ type AccessAuth struct {
 }
 
 type AccessType struct{}
-
 var AT AccessType
 
 func MigrateTables(db *gorm.DB) {
@@ -20,21 +19,6 @@ func MigrateTables(db *gorm.DB) {
 		&TblAccessControlPages{},
 		&TblAccessControlUserGroup{},
 	)
-}
-
-var Access AccessAuth
-
-func AccessInstance(a *auth.Option) auth.Authority {
-
-	auth := auth.Authority{
-		DB:     a.DB,
-		Token:  a.Token,
-		Secret: a.Secret,
-	}
-
-	MigrateTables(auth.DB)
-
-	return auth
 }
 
 /*Get  Space Id */

@@ -293,6 +293,20 @@ func (a Role) DeleteRole(roleid int) (err error) {
 	return errors.New("not authorized")
 }
 
+/**/
+func (a Authority) GetAllRoleData() (roles []TblRole, err error) {
+
+	var role []TblRole
+
+	rerr := AS.GetRolesData(&role, a.DB)
+
+	if rerr != nil {
+		return []TblRole{}, rerr
+	}
+
+	return role, nil
+}
+
 // create permission
 func (a Authority) CreatePermission(Perm MultiPermissin) error {
 

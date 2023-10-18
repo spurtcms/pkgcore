@@ -3,7 +3,6 @@ package teams
 import (
 	"time"
 
-	"github.com/spurtcms/spurtcms-core/auth"
 	"gorm.io/gorm"
 )
 
@@ -73,17 +72,6 @@ func (t Team) CreateUser(user *TblUser, DB *gorm.DB) error {
 	return nil
 }
 
-func (t Team) GetRolesData(roles *[]auth.TblRole, DB *gorm.DB) error {
-
-	if err := DB.Where("is_deleted=? and is_active=1", 0).Find(&roles).Error; err != nil {
-
-		return err
-
-	}
-
-	return nil
-}
-
 func (t Team) GetUsersList(users *[]TblUser, offset, limit int, filter Filters, flag bool, DB *gorm.DB) ([]TblUser, int64) {
 
 	var Total_users int64
@@ -123,7 +111,7 @@ func (t Team) GetUsersList(users *[]TblUser, offset, limit int, filter Filters, 
 
 }
 
-func (t Team) GetUserDetails(user *TblUser, id int, DB *gorm.DB) error {
+func (t Team) GetUserDetailsTeam(user *TblUser, id int, DB *gorm.DB) error {
 
 	if err := DB.Where("id=?", id).First(&user).Error; err != nil {
 
@@ -223,6 +211,26 @@ func (t Team) CheckUsername(user *TblUser, username string, userid int, DB *gorm
 			return err
 		}
 
+	}
+
+	return nil
+}
+
+func (t Team) ChangePasswordById(user *TblUser, DB *gorm.DB) error {
+
+	if err := DB.Model(&user).Where("id=?", user.Id).Updates(TblUser{Password: user.Password, ModifiedOn: user.ModifiedOn, ModifiedBy: user.ModifiedBy}).Error; err != nil {
+
+		return err
+	}
+	return nil
+}
+
+// Delete the role data
+func (t Team) UserUsedRoleCheck(user *TblUser, id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_users").Where("role_id=? and is_deleted =0", id).Find(user).Error; err != nil {
+
+		return err
 	}
 
 	return nil

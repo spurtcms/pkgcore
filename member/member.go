@@ -19,6 +19,10 @@ type Memberauth struct {
 	Authority *auth.Authority
 }
 
+type MemberAuth struct {
+	Auth *auth.Authority
+}
+
 type Image struct {
 	Filename    string
 	ContentType string
@@ -95,40 +99,6 @@ func (a Memberauth) ListMemberGroup(offset, limit int, filter Filter) (membergro
 		return membergrouplists, membercounts, nil
 	}
 	return []TblMemberGroup{}, 0, errors.New("not authorized")
-
-}
-
-func (a Memberauth) GetGroupData() (membergrouplists []TblMemberGroup, err error) {
-
-	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
-
-	if checkerr != nil {
-
-		return []TblMemberGroup{}, checkerr
-	}
-
-	var membergrouplist []TblMemberGroup
-
-	if err := a.Authority.DB.Table("tbl_member_group").Where("is_deleted = 0 and is_active = 1").Find(&membergrouplist).Error; err != nil {
-
-		return []TblMemberGroup{}, err
-
-	}
-
-	return membergrouplist, nil
-
-	// check, _ := a.Authority.IsGranted("Member Group", auth.Read)
-
-	// if check {
-
-	// var membergrouplist []TblMemberGroup
-
-	// if err := a.Authority.DB.Table("tbl_member_group").Where("is_deleted = 0").Find(&membergrouplist).Error; err != nil {
-
-	// 	return membergrouplist, err
-
-	// }
-	// }
 
 }
 
@@ -262,11 +232,11 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 
 		}
 
-		err1 := AS.MemberGroupDelete(&membergroup, id, a.Authority.DB)
+		err := AS.MemberGroupDelete(&membergroup, id, a.Authority.DB)
 
 		if err != nil {
 
-			return err1
+			return err
 		}
 
 	} else {
@@ -277,7 +247,7 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 }
 
 // list member
-func (a Memberauth) ListMembers(offset, limit int, filter Filter, flag bool) (member []TblMember, totoalmember int64, err error) {
+func (a Memberauth) ListMembers(offset int, limit int, filter Filter, flag bool) (member []TblMember, totoalmember int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -288,41 +258,72 @@ func (a Memberauth) ListMembers(offset, limit int, filter Filter, flag bool) (me
 	check, _ := a.Authority.IsGranted("Member", auth.Read)
 
 	if check {
+
 		var member []TblMember
 
-		var Total_Member int64
+		var membergroup []TblMemberGroup
 
-		query := a.Authority.DB.Table("tbl_members").Select("tbl_members.id,tbl_members.uuid,tbl_members.member_group_id,tbl_members.first_name,tbl_members.last_name,tbl_members.email,tbl_members.mobile_no,tbl_members.profile_image,tbl_members.profile_image_path,tbl_members.created_on,tbl_members.created_by,tbl_members.modified_on,tbl_members.modified_by,tbl_members.is_active,tbl_members.is_deleted,tbl_members.deleted_on,tbl_members.deleted_by").
-			Joins("left join tbl_member_group on tbl_members.member_group_id = tbl_member_group.id").Where("tbl_members.is_deleted=?", 0)
+		memberlist, _, _ := AS.MembersList(member, offset, limit, filter, flag, a.Authority.DB)
 
-		if filter.Keyword != "" {
+		_, Total_users, _ := AS.MembersList(member, 0, 0, filter, flag, a.Authority.DB)
 
-			query = query.Where("(LOWER(TRIM(tbl_members.first_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_members.last_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_member_group.name)) ILIKE LOWER(TRIM(?)))"+" AND tbl_members.is_deleted=0"+" AND tbl_member_group.is_deleted=0", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%")
+		var members []TblMember
 
+		membergrouplist, _ := AS.GetGroupData(membergroup, a.Authority.DB)
+
+		for _, member_object := range memberlist {
+
+			member_object.CreatedDate = member_object.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			for _, membergrp_object := range membergrouplist {
+
+				if member_object.MemberGroupId == membergrp_object.Id {
+
+					member_object.Group = append(member_object.Group, membergrp_object)
+
+					members = append(members, member_object)
+
+				}
+
+			}
 		}
-		if flag {
 
-			query.Order("id desc").Find(&member)
-
-			return member, 0, err
-
-		}
-
-		if limit != 0 && !flag {
-
-			query.Offset(offset).Limit(limit).Order("id desc").Find(&member)
-
-			return member, 0, err
-
-		} else {
-			query.Find(&member).Count(&Total_Member)
-
-			return member, Total_Member, nil
-		}
+		return members, Total_users, nil
 
 	}
 
 	return []TblMember{}, 0, errors.New("not authorized")
+
+}
+
+func (a Memberauth) GetGroupData() (membergroup []TblMemberGroup, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblMemberGroup{}, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member Group", auth.Create)
+
+	if err != nil {
+
+		return []TblMemberGroup{}, err
+	}
+
+	if check {
+
+		var membergroup []TblMemberGroup
+
+		membergrouplist, _ := AS.GetGroupData(membergroup, a.Authority.DB)
+
+		return membergrouplist, nil
+
+	} else {
+
+		return []TblMemberGroup{}, errors.New("not authorized")
+	}
 
 }
 
@@ -381,10 +382,11 @@ func (a Memberauth) CreateMember(Mc MemberCreation) error {
 
 		member.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		if err := a.Authority.DB.Table("tbl_members").Create(&member).Error; err != nil {
+		err := AS.MemberCreate(&member, a.Authority.DB)
+
+		if err != nil {
 
 			return err
-
 		}
 
 	} else {
@@ -455,16 +457,10 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 		member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		query := a.Authority.DB.Table("tbl_members").Where("id=?", member.Id)
+		err := AS.UpdateMember(&member, a.Authority.DB)
 
-		if member.Password == "" && member.ProfileImage == "" && member.ProfileImagePath == "" {
+		if err != nil {
 
-			query.Omit("password , profile_image , profile_image_path").UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "member_group_id": member.MemberGroupId, "email": member.Email, "username": member.Username, "mobile_no": member.MobileNo, "is_active": member.IsActive, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy})
-
-			return err
-
-		} else {
-			query.UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "member_group_id": member.MemberGroupId, "email": member.Email, "username": member.Username, "mobile_no": member.MobileNo, "is_active": member.IsActive, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath, "password": member.Password})
 			return err
 		}
 
@@ -501,10 +497,11 @@ func (a Memberauth) DeleteMember(id int) error {
 
 		member.DeletedBy = userid
 
-		if err := a.Authority.DB.Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+		err := AS.DeleteMember(&member, id, a.Authority.DB)
+
+		if err != nil {
 
 			return err
-
 		}
 
 	} else {
@@ -536,18 +533,11 @@ func (a Memberauth) CheckEmailInMember(id int, email string) error {
 	if check {
 		var member TblMember
 
-		if id == 0 {
+		err := AS.CheckEmailInMember(&member, email, id, a.Authority.DB)
 
-			if err := a.Authority.DB.Table("tbl_members").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and is_deleted=0", email).First(&member).Error; err != nil {
+		if err != nil {
 
-				return err
-			}
-		} else {
-
-			if err := a.Authority.DB.Debug().Table("tbl_members").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and id not in (?) and is_deleted = 0 ", email, id).First(&member).Error; err != nil {
-
-				return err
-			}
+			return err
 		}
 
 	}
@@ -575,18 +565,10 @@ func (a Memberauth) CheckNumberInMember(id int, number string) error {
 
 		var member TblMember
 
-		if id == 0 {
+		err := AS.CheckNumberInMember(&member, number, id, a.Authority.DB)
 
-			if err := a.Authority.DB.Table("tbl_members").Where("mobile_no = ? and is_deleted = 0", number).First(&member).Error; err != nil {
-
-				return err
-			}
-		} else {
-
-			if err := a.Authority.DB.Debug().Table("tbl_members").Where("mobile_no = ? and id not in (?) and is_deleted = 0", number, id).First(&member).Error; err != nil {
-
-				return err
-			}
+		if err != nil {
+			return err
 		}
 
 	}
@@ -681,7 +663,9 @@ func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 
 	var member TblMember
 
-	if err := a.Authority.DB.Table("tbl_members").Where("id=?", id).First(&member).Error; err != nil {
+	err1 := AS.MemberDetails(&member, id, a.Authority.DB)
+
+	if err1 != nil {
 
 		return TblMember{}, err
 	}
@@ -738,7 +722,7 @@ func CreateMemberToken(userid, roleid int, secretkey string) (string, error) {
 }
 
 /*Member login*/
-func CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string) (string, error) {
+func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string) (string, error) {
 
 	username := memlogin.Username
 
@@ -850,4 +834,125 @@ func hashingPassword(pass string) string {
 	}
 
 	return string(passbyte)
+}
+
+// updateOTP
+func (M MemberAuth) UpdateOtp(otp int) (bool, error) {
+
+	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	err := AS.UpdateOTP(otp, memberid, M.Auth.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+// ChangeEmailid
+func (M MemberAuth) ChangeEmailId(emailid string) (bool, error) {
+
+	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	err := AS.UpdateEmail(emailid, memberid, M.Auth.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+// ChangePassword
+func (M MemberAuth) ChangePassword(password string) (bool, error) {
+
+	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	err := AS.UpdatePassword(password, memberid, M.Auth.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+// get member details
+func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
+
+	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+
+	if checkerr != nil {
+
+		return TblMember{}, checkerr
+	}
+
+	var member TblMember
+
+	err1 := AS.MemberDetails(&member, memberid, M.Auth.DB)
+
+	if err1 != nil {
+
+		return TblMember{}, err
+	}
+
+	return member, nil
+
+}
+
+// register member
+func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) {
+
+	Pass := hashingPassword(MemC.Password)
+
+	var member TblMember
+
+	member.FirstName = MemC.FirstName
+
+	member.LastName = MemC.LastName
+
+	member.Email = MemC.Email
+
+	member.MobileNo = MemC.MobileNo
+
+	member.IsActive = 1
+
+	member.MemberGroupId = 1
+
+	member.Username = MemC.Username
+
+	member.Password = Pass
+
+	member.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+	member.CreatedBy = 1
+
+	err1 := AS.MemberCreate(&member, M.Auth.DB)
+
+	if err1 != nil {
+
+		return false, err
+	}
+
+	return true, nil
+
 }

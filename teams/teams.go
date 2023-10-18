@@ -2,6 +2,7 @@ package teams
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -341,6 +342,54 @@ func (a TeamAuth) CheckUsername(username string, userid int) (bool, error) {
 	if err != nil {
 
 		return false, err
+	}
+
+	return true, nil
+}
+
+/**/
+func (a TeamAuth) GetUserDetails(userid int) (user TblUser, err error) {
+
+	var users TblUser
+
+	usrerr := TM.GetUserDetailsTeam(&users, userid, a.Authority.DB)
+
+	if usrerr != nil {
+
+		log.Println(usrerr)
+
+		return TblUser{}, usrerr
+	}
+
+	return users, nil
+}
+
+func (a TeamAuth) ChangeYourPassword(password string) (success bool, err error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var tbluser TblUser
+
+	tbluser.Id = userid
+
+	hash_pass := hashingPassword(password)
+
+	tbluser.Password = hash_pass
+
+	tbluser.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+	tbluser.ModifiedBy = 1
+
+	cerr := TM.ChangePasswordById(&tbluser, a.Authority.DB)
+
+	if cerr != nil {
+
+		return false, cerr
 	}
 
 	return true, nil

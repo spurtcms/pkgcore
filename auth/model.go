@@ -165,6 +165,17 @@ func (as Authstruct) GetAllRoles(role *[]TblRole, limit, offset int, filter Filt
 	return 0, nil
 }
 
+func (as Authstruct) GetRolesData(roles *[]TblRole, DB *gorm.DB) error {
+
+	if err := DB.Where("is_deleted=? and is_active=1", 0).Find(&roles).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
+}
+
 // Roels Insert
 func (as Authstruct) RoleCreate(role *TblRole, DB *gorm.DB) error {
 
@@ -242,7 +253,7 @@ func (as Authstruct) DeleteRolePermissionById(roleper *[]TblRolePermission, role
 }
 
 /*This is for assign permission*/
-func GetAllModules(mod *[]TblModule, limit, offset, id int, filter Filter,DB *gorm.DB) (count int64) {
+func GetAllModules(mod *[]TblModule, limit, offset, id int, filter Filter, DB *gorm.DB) (count int64) {
 
 	query := DB.Table("tbl_modules").Where("parent_id!=0 or assign_permission=1").Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
 		return db.Where("assign_permission =0")
