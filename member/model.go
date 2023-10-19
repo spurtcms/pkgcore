@@ -1,6 +1,7 @@
 package member
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -30,6 +31,7 @@ type TblMember struct {
 	Password         string
 	Username         string
 	Otp              int
+	OtpExpiry        time.Time
 }
 
 type TblMemberGroup struct {
@@ -47,7 +49,7 @@ type TblMemberGroup struct {
 }
 
 type MemberLogin struct {
-	Username string
+	Emailid  string
 	Password string
 }
 
@@ -276,9 +278,9 @@ func (As Authstruct) CheckNumberInMember(member *TblMember, number string, useri
 }
 
 // upateotp
-func (As Authstruct) UpdateOTP(otp int, memberid int, DB *gorm.DB) error {
+func (As Authstruct) UpdateOTP(tblmem *TblMember, otp int, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"otp": otp}).Error; err != nil {
+	if err := DB.Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"otp": tblmem.Otp, "otp_expiry": tblmem.OtpExpiry}).Error; err != nil {
 
 		return err
 	}
@@ -303,6 +305,61 @@ func (As Authstruct) UpdatePassword(password string, memberid int, DB *gorm.DB) 
 	if err := DB.Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"password": password}).Error; err != nil {
 
 		return err
+	}
+
+	return nil
+}
+
+// Member la IsActive Function
+func (As Authstruct) MemberIsActive(memberstatus TblMemberGroup, memberid int, status int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_member_group").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// Delete Popup
+func (As Authstruct) MemberDeletePopup(id int, DB *gorm.DB) (member TblMember, err error) {
+
+	if err := DB.Table("tbl_members").Where("member_group_id=? and is_deleted = 0", id).Find(&member).Error; err != nil {
+
+		return TblMember{}, err
+	}
+
+	return member, nil
+}
+
+// Get Member group data
+func (As Authstruct) GetMemberById(membergroup TblMemberGroup, id int, DB *gorm.DB) (membergrp TblMemberGroup, err error) {
+
+	if err := DB.Table("tbl_member_group").Where("id=?", id).First(&membergroup).Error; err != nil {
+
+		return TblMemberGroup{}, err
+	}
+
+	return membergroup, nil
+}
+
+// Name already exists
+func (As Authstruct) CheckNameInMember(member *TblMember, userid int, name string, DB *gorm.DB) error {
+
+	fmt.Println("name in model", name)
+
+	if userid == 0 {
+
+		if err := DB.Table("tbl_members").Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", name).First(&member).Error; err != nil {
+
+			return err
+		}
+	} else {
+
+		if err := DB.Table("tbl_members").Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&member).Error; err != nil {
+
+			return err
+		}
 	}
 
 	return nil

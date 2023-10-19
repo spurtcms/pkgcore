@@ -231,6 +231,7 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 			return errors.New("invalid id cannot delete")
 
 		}
+		membergroup.IsDeleted = 1
 
 		err := AS.MemberGroupDelete(&membergroup, id, a.Authority.DB)
 
@@ -575,6 +576,39 @@ func (a Memberauth) CheckNumberInMember(id int, number string) error {
 	return nil
 }
 
+// Check Name is already exits or not
+func (a Memberauth) CheckNameInMember(id int, name string) error {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member", auth.Create)
+
+	if err != nil {
+
+		return err
+	}
+
+	if check {
+
+		var member TblMember
+
+		fmt.Println("pkg namr", name)
+
+		err := AS.CheckNameInMember(&member, id, name, a.Authority.DB)
+
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
 // member group delete popup
 func (a Memberauth) MemberDeletePopup(id int) (member TblMember, err1 error) {
 
@@ -594,10 +628,9 @@ func (a Memberauth) MemberDeletePopup(id int) (member TblMember, err1 error) {
 
 	if check {
 
-		var member TblMember
+		member, _ = AS.MemberDeletePopup(id, a.Authority.DB)
 
-		if err := a.Authority.DB.Table("tbl_members").Where("member_group_id=? and is_deleted = 0", id).Find(&member).Error; err != nil {
-
+		if err != nil {
 			return TblMember{}, err
 		}
 	}
@@ -630,8 +663,9 @@ func (a Memberauth) MemberIsActive(memberid int, status int) error {
 
 		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
+		err := AS.MemberIsActive(memberstatus, memberid, status, a.Authority.DB)
 
+		if err != nil {
 			return err
 		}
 	} else {
@@ -663,9 +697,9 @@ func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 
 	var member TblMember
 
-	err1 := AS.MemberDetails(&member, id, a.Authority.DB)
+	err = AS.MemberDetails(&member, id, a.Authority.DB)
 
-	if err1 != nil {
+	if err != nil {
 
 		return TblMember{}, err
 	}
@@ -692,10 +726,11 @@ func (a Memberauth) GetMemberById(id int) (membergroup TblMemberGroup, err error
 	}
 
 	if check {
-
 		var membergroup TblMemberGroup
 
-		if err := a.Authority.DB.Table("tbl_member_group").Where("id=?", id).First(&membergroup).Error; err != nil {
+		membergroup, _ = AS.GetMemberById(membergroup, id, a.Authority.DB)
+
+		if err != nil {
 
 			return TblMemberGroup{}, err
 		}
@@ -724,7 +759,7 @@ func CreateMemberToken(userid, roleid int, secretkey string) (string, error) {
 /*Member login*/
 func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string) (string, error) {
 
-	username := memlogin.Username
+	username := memlogin.Emailid
 
 	password := memlogin.Password
 
@@ -784,45 +819,6 @@ func VerifyToken(token string, secret string) (memberid, groupid int, err error)
 	return int(usrid.(float64)), int(rolid.(float64)), nil
 }
 
-// Check Name is already exits or not
-func (a Memberauth) CheckNameInMember(id int, name string) error {
-
-	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
-
-	if checkerr != nil {
-
-		return checkerr
-	}
-
-	check, err := a.Authority.IsGranted("Member", auth.Create)
-
-	if err != nil {
-
-		return err
-	}
-
-	if check {
-
-		var member TblMember
-
-		if id == 0 {
-
-			if err := a.Authority.DB.Table("tbl_members").Where("username = ? and is_deleted = 0", name).First(&member).Error; err != nil {
-
-				return err
-			}
-		} else {
-
-			if err := a.Authority.DB.Debug().Table("tbl_members").Where("username = ? and id not in (?) and is_deleted = 0", name, id).First(&member).Error; err != nil {
-
-				return err
-			}
-		}
-
-	}
-	return nil
-}
-
 func hashingPassword(pass string) string {
 
 	passbyte, err := bcrypt.GenerateFromPassword([]byte(pass), 14)
@@ -836,6 +832,7 @@ func hashingPassword(pass string) string {
 	return string(passbyte)
 }
 
+// This is OTP will expiry after 5 minutes
 // updateOTP
 func (M MemberAuth) UpdateOtp(otp int) (bool, error) {
 
@@ -846,7 +843,13 @@ func (M MemberAuth) UpdateOtp(otp int) (bool, error) {
 		return false, checkerr
 	}
 
-	err := AS.UpdateOTP(otp, memberid, M.Auth.DB)
+	var tblmember TblMember
+
+	tblmember.Otp = otp
+
+	tblmember.OtpExpiry, _ = time.Parse("2006-01-02 15:04:05", time.Now().Add(time.Duration(5)*time.Minute).In(IST).Format("2006-01-02 15:04:05"))
+
+	err := AS.UpdateOTP(&tblmember, otp, memberid, M.Auth.DB)
 
 	if err != nil {
 
@@ -857,13 +860,28 @@ func (M MemberAuth) UpdateOtp(otp int) (bool, error) {
 }
 
 // ChangeEmailid
-func (M MemberAuth) ChangeEmailId(emailid string) (bool, error) {
+func (M MemberAuth) ChangeEmailId(otp int, emailid string) (bool, error) {
 
 	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
 
 	if checkerr != nil {
 
 		return false, checkerr
+	}
+
+	var tblmember TblMember
+
+	AS.MemberDetails(&tblmember, memberid, M.Auth.DB)
+
+	if tblmember.Otp != otp {
+
+		return false, errors.New("invalid otp")
+	}
+
+	if tblmember.OtpExpiry.Unix() < time.Now().Unix() {
+
+		return false, errors.New("otp exipred")
+
 	}
 
 	err := AS.UpdateEmail(emailid, memberid, M.Auth.DB)
@@ -877,13 +895,28 @@ func (M MemberAuth) ChangeEmailId(emailid string) (bool, error) {
 }
 
 // ChangePassword
-func (M MemberAuth) ChangePassword(password string) (bool, error) {
+func (M MemberAuth) ChangePassword(otp int, password string) (bool, error) {
 
 	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
 
 	if checkerr != nil {
 
 		return false, checkerr
+	}
+
+	var tblmember TblMember
+
+	AS.MemberDetails(&tblmember, memberid, M.Auth.DB)
+
+	if tblmember.Otp != otp {
+
+		return false, errors.New("invalid otp")
+	}
+
+	if tblmember.OtpExpiry.Unix() < time.Now().Unix() {
+
+		return false, errors.New("otp exipred")
+
 	}
 
 	err := AS.UpdatePassword(password, memberid, M.Auth.DB)

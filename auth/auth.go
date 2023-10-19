@@ -175,6 +175,30 @@ func (a Role) RoleList(limit int, offset int, filter Filter) (roles []TblRole, r
 	return []TblRole{}, 0, errors.New("not authorized")
 }
 
+// get role by id
+func (a Role) GetRoleById(roleid int) (tblrole TblRole, err error) {
+
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return TblRole{}, checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		var role TblRole
+
+		AS.GetRoleById(&role, roleid, a.Auth.DB)
+
+		return role, nil
+	}
+
+	return TblRole{}, errors.New("not authorized")
+}
+
 // create role
 func (a Role) CreateRole(rolec RoleCreation) error {
 
@@ -416,7 +440,7 @@ func (a Authority) PermissionListRoleId(limit, offset, roleid int, filter Filter
 
 		var allmodules []TblModule
 
-		GetAllModules(&allmodule, limit, offset, roleid, filter, a.DB)
+		AS.GetAllModules(&allmodule, limit, offset, roleid, filter, a.DB)
 
 		for _, val := range allmodule {
 
@@ -467,7 +491,7 @@ func (a Authority) PermissionListRoleId(limit, offset, roleid int, filter Filter
 
 		var allmodul []TblModule
 
-		Totalcount := GetAllModules(&allmodul, 0, 0, roleid, filter, a.DB)
+		Totalcount := AS.GetAllModules(&allmodul, 0, 0, roleid, filter, a.DB)
 
 		return allmodules, Totalcount, nil
 
@@ -517,7 +541,7 @@ func (a Authority) IsGranted(modulename string, permisison Action) (bool, error)
 
 	if permisison == "CRUD" {
 
-		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete)'", modid).Find(&modulepermission).Error; err != nil {
+		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete')", modid).Find(&modulepermission).Error; err != nil {
 
 			return false, err
 		}
