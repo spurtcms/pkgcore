@@ -282,13 +282,13 @@ func (a TeamAuth) DeleteUser(id int) error {
 }
 
 // check email
-func (a TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
+func (a TeamAuth) CheckEmail(Email string, userid int) (users TblUser, checl bool, errr error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
-		return false, checkerr
+		return TblUser{}, false, checkerr
 	}
 
 	var user TblUser
@@ -297,10 +297,10 @@ func (a TeamAuth) CheckEmail(Email string, userid int) (bool, error) {
 
 	if err != nil {
 
-		return false, err
+		return TblUser{}, false, err
 	}
 
-	return true, nil
+	return user, true, nil
 }
 
 // check mobile

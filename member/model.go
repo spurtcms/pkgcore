@@ -30,8 +30,8 @@ type TblMember struct {
 	Group            []TblMemberGroup `gorm:"-"`
 	Password         string
 	Username         string
-	Otp              int
-	OtpExpiry        time.Time
+	Otp              int       `gorm:"DEFAULT:NULL"`
+	OtpExpiry        time.Time `gorm:"DEFAULT:NULL"`
 }
 
 type TblMemberGroup struct {
@@ -97,14 +97,12 @@ func (as Authstruct) MemberGroupList(membergroup []TblMemberGroup, limit int, of
 
 		return membergroup, 0, err
 
-	} else {
-
-		query.Find(&membergroup).Count(&TotalMemberGroup)
-
-		return membergroup, TotalMemberGroup, err
 	}
 
-	return []TblMemberGroup{}, 0, nil
+	query.Find(&membergroup).Count(&TotalMemberGroup)
+
+	return membergroup, TotalMemberGroup, err
+
 }
 
 // Member Group Insert
@@ -167,13 +165,11 @@ func (as Authstruct) MembersList(member []TblMember, limit int, offset int, filt
 
 		return member, 0, err
 
-	} else {
-		query.Find(&member).Count(&Total_Member)
-
-		return member, Total_Member, nil
 	}
+	query.Find(&member).Count(&Total_Member)
 
-	return []TblMember{}, 0, nil
+	return member, Total_Member, nil
+
 }
 
 func (as Authstruct) GetGroupData(membergroup []TblMemberGroup, DB *gorm.DB) (membergrouplists []TblMemberGroup, err error) {
@@ -333,14 +329,14 @@ func (As Authstruct) MemberDeletePopup(id int, DB *gorm.DB) (member TblMember, e
 }
 
 // Get Member group data
-func (As Authstruct) GetMemberById(membergroup TblMemberGroup, id int, DB *gorm.DB) (membergrp TblMemberGroup, err error) {
+func (As Authstruct) GetMemberById(membergroup TblMemberGroup, id int, DB *gorm.DB) (err error) {
 
 	if err := DB.Table("tbl_member_group").Where("id=?", id).First(&membergroup).Error; err != nil {
 
-		return TblMemberGroup{}, err
+		return err
 	}
 
-	return membergroup, nil
+	return nil
 }
 
 // Name already exists
@@ -362,5 +358,14 @@ func (As Authstruct) CheckNameInMember(member *TblMember, userid int, name strin
 		}
 	}
 
+	return nil
+}
+
+func (AS Authstruct) MemberUpdate(member *TblMember, id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath}).Error; err != nil {
+
+		return err
+	}
 	return nil
 }

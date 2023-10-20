@@ -24,6 +24,10 @@ type Role struct {
 	Auth Authority
 }
 
+type PermissionAu struct {
+	Auth Authority
+}
+
 type Authstruct struct{}
 
 var AS Authstruct
@@ -167,7 +171,7 @@ func (a Role) RoleList(limit int, offset int, filter Filter) (roles []TblRole, r
 
 		var roleco []TblRole
 
-		rolecounts, _ := AS.GetAllRoles(&roleco, limit, offset, filter, a.Auth.DB)
+		rolecounts, _ := AS.GetAllRoles(&roleco, 0, 0, filter, a.Auth.DB)
 
 		return role, rolecounts, nil
 	}
@@ -318,11 +322,11 @@ func (a Role) DeleteRole(roleid int) (err error) {
 }
 
 /**/
-func (a Authority) GetAllRoleData() (roles []TblRole, err error) {
+func (a Role) GetAllRoleData() (roles []TblRole, err error) {
 
 	var role []TblRole
 
-	rerr := AS.GetRolesData(&role, a.DB)
+	rerr := AS.GetRolesData(&role, a.Auth.DB)
 
 	if rerr != nil {
 		return []TblRole{}, rerr
@@ -332,16 +336,16 @@ func (a Authority) GetAllRoleData() (roles []TblRole, err error) {
 }
 
 // create permission
-func (a Authority) CreatePermission(Perm MultiPermissin) error {
+func (a PermissionAu) CreatePermission(Perm MultiPermissin) error {
 
-	userid, _, checkerr := VerifyToken(a.Token, a.Secret)
+	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
 	if checkerr != nil {
 
 		return checkerr
 	}
 
-	check, err := a.IsGranted("Permissions", CRUD)
+	check, err := a.Auth.IsGranted("Permissions", CRUD)
 
 	if err != nil {
 
@@ -352,7 +356,7 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 
 		var checknotexist []TblRolePermission
 
-		cnerr := AS.CheckPermissionIdNotExist(&checknotexist, Perm.RoleId, Perm.Ids, a.DB)
+		cnerr := AS.CheckPermissionIdNotExist(&checknotexist, Perm.RoleId, Perm.Ids, a.Auth.DB)
 
 		if cnerr != nil {
 
@@ -360,12 +364,12 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 
 		} else if len(checknotexist) != 0 {
 
-			AS.DeleteRolePermissionById(&checknotexist, Perm.RoleId, a.DB)
+			AS.DeleteRolePermissionById(&checknotexist, Perm.RoleId, a.Auth.DB)
 		}
 
 		var checkexist []TblRolePermission
 
-		cerr := AS.CheckPermissionIdExist(&checkexist, Perm.RoleId, Perm.Ids, a.DB)
+		cerr := AS.CheckPermissionIdExist(&checkexist, Perm.RoleId, Perm.Ids, a.Auth.DB)
 
 		if cerr != nil {
 
@@ -403,7 +407,7 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 
 			if len(createrolepermission) != 0 {
 
-				AS.CreateRolePermission(&createrolepermission, a.DB)
+				AS.CreateRolePermission(&createrolepermission, a.Auth.DB)
 
 			}
 
@@ -418,16 +422,16 @@ func (a Authority) CreatePermission(Perm MultiPermissin) error {
 }
 
 // permission List
-func (a Authority) PermissionListRoleId(limit, offset, roleid int, filter Filter) (Module []TblModule, count int64, err error) {
+func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Filter) (Module []TblModule, count int64, err error) {
 
-	_, _, checkerr := VerifyToken(a.Token, a.Secret)
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
 	if checkerr != nil {
 
 		return []TblModule{}, 0, checkerr
 	}
 
-	check, err := a.IsGranted("Permissions", CRUD)
+	check, err := a.Auth.IsGranted("Permissions", CRUD)
 
 	if err != nil {
 
@@ -440,7 +444,7 @@ func (a Authority) PermissionListRoleId(limit, offset, roleid int, filter Filter
 
 		var allmodules []TblModule
 
-		AS.GetAllModules(&allmodule, limit, offset, roleid, filter, a.DB)
+		AS.GetAllModules(&allmodule, limit, offset, roleid, filter, a.Auth.DB)
 
 		for _, val := range allmodule {
 
@@ -491,7 +495,7 @@ func (a Authority) PermissionListRoleId(limit, offset, roleid int, filter Filter
 
 		var allmodul []TblModule
 
-		Totalcount := AS.GetAllModules(&allmodul, 0, 0, roleid, filter, a.DB)
+		Totalcount := AS.GetAllModules(&allmodul, 0, 0, roleid, filter, a.Auth.DB)
 
 		return allmodules, Totalcount, nil
 

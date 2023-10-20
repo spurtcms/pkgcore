@@ -728,11 +728,11 @@ func (a Memberauth) GetMemberById(id int) (membergroup TblMemberGroup, err error
 	if check {
 		var membergroup TblMemberGroup
 
-		membergroup, _ = AS.GetMemberById(membergroup, id, a.Authority.DB)
+		err1 := AS.GetMemberById(membergroup, id, a.Authority.DB)
 
-		if err != nil {
+		if err1 != nil {
 
-			return TblMemberGroup{}, err
+			return TblMemberGroup{}, err1
 		}
 
 	}
@@ -765,9 +765,9 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	var member TblMember
 
-	if err := db.Table("tbl_members").Where("username = ?", username).First(&member).Error; err != nil {
+	if err := db.Table("tbl_members").Where("email = ?", username).First(&member).Error; err != nil {
 
-		return "", err
+		return "", errors.New("your email not registered")
 
 	}
 
@@ -832,7 +832,7 @@ func hashingPassword(pass string) string {
 	return string(passbyte)
 }
 
-// This is OTP will expiry after 5 minutes
+// This OTP valid only 5 minutes
 // updateOTP
 func (M MemberAuth) UpdateOtp(otp int) (bool, error) {
 
@@ -980,6 +980,39 @@ func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) 
 	member.CreatedBy = 1
 
 	err1 := AS.MemberCreate(&member, M.Auth.DB)
+
+	if err1 != nil {
+
+		return false, err
+	}
+
+	return true, nil
+
+}
+
+// Update member
+func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
+
+	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var member TblMember
+
+	member.FirstName = MemC.FirstName
+
+	member.LastName = MemC.LastName
+
+	member.MobileNo = MemC.MobileNo
+
+	member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+	member.ModifiedBy = 1
+
+	err1 := AS.MemberUpdate(&member, memberid, M.Auth.DB)
 
 	if err1 != nil {
 
