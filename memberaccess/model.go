@@ -42,9 +42,9 @@ type TblAccessControlUserGroup struct {
 	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
 	IsDeleted       int
 	DeletedOn       time.Time `gorm:"DEFAULT:NULL"`
-	SpacesId        int       `gorm:"<-:false"`
-	PageId          int       `gorm:"<-:false"`
-	PageGroupId     int       `gorm:"<-:false"`
+	SpacesId        int       `gorm:"-:migration;<-:false"`
+	PageId          int       `gorm:"-:migration;<-:false"`
+	PageGroupId     int       `gorm:"-:migration;<-:false"`
 }
 
 func (at AccessType) GetSpaceByMemberId(tblaccess *[]TblAccessControlUserGroup, membergroupid int, DB *gorm.DB) error {

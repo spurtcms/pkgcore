@@ -7,7 +7,7 @@ import (
 )
 
 type TblUser struct {
-	Id                   int `gorm:"primaryKey"`
+	Id                   int `gorm:"primaryKey;auto_increment"`
 	Uuid                 string
 	FirstName            string
 	LastName             string
@@ -29,13 +29,13 @@ type TblUser struct {
 	DeletedOn            time.Time `gorm:"DEFAULT:NULL"`
 	DeletedBy            int       `gorm:"DEFAULT:NULL"`
 	ModuleName           string    `gorm:"-"`
-	RouteName            string    `gorm:"<-:false"`
-	DisplayName          string    `gorm:"<-:false"`
+	RouteName            string    `gorm:"-:migration;<-:false"`
+	DisplayName          string    `gorm:"-:migration;<-:false"`
 	Description          string    `gorm:"-"`
-	ModuleId             int       `gorm:"<-:false"`
+	ModuleId             int       `gorm:"-:migration;<-:false"`
 	PermissionId         int       `gorm:"-"`
-	FullAccessPermission int       `gorm:"<-:false"`
-	RoleName             string    `gorm:"<-:false"`
+	FullAccessPermission int       `gorm:"-:migration;<-:false"`
+	RoleName             string    `gorm:"-:migration;<-:false"`
 	DefaultLanguageId    int
 }
 

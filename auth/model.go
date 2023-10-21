@@ -12,11 +12,11 @@ type TblModule struct {
 	IsActive            int
 	CreatedBy           int
 	CreatedOn           time.Time
-	CreatedDate         string `gorm:"<-:false"`
+	CreatedDate         string `gorm:"-:migration;<-:false"`
 	DefaultModule       int
 	ParentId            int
 	IconPath            string
-	TblModulePermission []TblModulePermission `gorm:"<-:false; foreignKey:ModuleId"`
+	TblModulePermission []TblModulePermission `gorm:"-:migration;<-:false; foreignKey:ModuleId"`
 	Description         string
 }
 
@@ -31,12 +31,12 @@ type TblModulePermission struct {
 	CreatedDate          string    `gorm:"-"`
 	ModifiedBy           int       `gorm:"DEFAULT:NULL"`
 	ModifiedOn           time.Time `gorm:"DEFAULT:NULL"`
-	ModuleName           string    `gorm:"<-:false"`
+	ModuleName           string    `gorm:"-:migration;<-:false"`
 	FullAccessPermission int
 	ParentId             int
 	AssignPermission     int
 	BreadcrumbName       string
-	TblRolePermission    []TblRolePermission `gorm:"<-:false; foreignKey:PermissionId"`
+	TblRolePermission    []TblRolePermission `gorm:"-:migration;<-:false; foreignKey:PermissionId"`
 }
 
 type TblRolePermission struct {
@@ -45,7 +45,7 @@ type TblRolePermission struct {
 	PermissionId int
 	CreatedBy    int
 	CreatedOn    time.Time
-	CreatedDate  string `gorm:"<-:false"`
+	CreatedDate  string `gorm:"-:migration;<-:false"`
 }
 
 type TblUser struct {
@@ -71,12 +71,12 @@ type TblUser struct {
 	DeletedOn            time.Time `gorm:"DEFAULT:NULL"`
 	DeletedBy            int       `gorm:"DEFAULT:NULL"`
 	ModuleName           string    `gorm:"-"`
-	RouteName            string    `gorm:"<-:false"`
-	DisplayName          string    `gorm:"<-:false"`
+	RouteName            string    `gorm:"-:migration;<-:false"`
+	DisplayName          string    `gorm:"-:migration;<-:false"`
 	Description          string    `gorm:"-"`
-	ModuleId             int       `gorm:"<-:false"`
+	ModuleId             int       `gorm:"-:migration;<-:false"`
 	PermissionId         int       `gorm:"-"`
-	FullAccessPermission int       `gorm:"<-:false"`
+	FullAccessPermission int       `gorm:"-:migration;<-:false"`
 	Roles                []TblRole `gorm:"-"`
 }
 
@@ -91,7 +91,7 @@ type TblRole struct {
 	CreatedBy   int
 	ModifiedOn  time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy  int       `gorm:"DEFAULT:NULL"`
-	CreatedDate string    `gorm:"<-:false"`
+	CreatedDate string    `gorm:"-:migration;<-:false"`
 	User        []TblUser `gorm:"-"`
 }
 
@@ -104,10 +104,10 @@ type TblRoleUser struct {
 	ModifiedBy   int       `gorm:"DEFAULT:NULL"`
 	ModifiedOn   time.Time `gorm:"DEFAULT:NULL"`
 	ModuleName   string    `gorm:"-"`
-	RouteName    string    `gorm:"<-:false"`
-	DisplayName  string    `gorm:"<-"`
+	RouteName    string    `gorm:"-:migration;<-:false"`
+	DisplayName  string    `gorm:"-:migration;<-"`
 	Description  string    `gorm:"-"`
-	ModuleId     int       `gorm:"<-"`
+	ModuleId     int       `gorm:"-:migration;<-"`
 	PermissionId int       `gorm:"-"`
 }
 
@@ -281,7 +281,7 @@ func (as Authstruct) GetAllModules(mod *[]TblModule, limit, offset, id int, filt
 }
 
 /*Get role by id*/
-func  (as Authstruct) GetRoleById(role *TblRole, id int, DB *gorm.DB) error {
+func (as Authstruct) GetRoleById(role *TblRole, id int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_roles").Where("id=?", id).First(&role).Error; err != nil {
 
