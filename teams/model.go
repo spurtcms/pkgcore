@@ -235,3 +235,13 @@ func (t Team) UserUsedRoleCheck(user *TblUser, id int, DB *gorm.DB) error {
 
 	return nil
 }
+
+// Rolechekc
+func (t Team) CheckRoleUsed(user *TblUser, roleid int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_users").Where("role_id=? and is_deleted =0", roleid).Find(user).Error; err != nil {
+		return err
+	}
+	return nil
+
+}

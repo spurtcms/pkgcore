@@ -98,7 +98,7 @@ func VerifyToken(token string, secret string) (userid, roleid int, err error) {
 			return 0, 0, errors.New("invalid token")
 		}
 
-		return 0, 0, errors.New(err.Error())
+		return 0, 0, errors.New("invalid token")
 	}
 
 	if !tkn.Valid {

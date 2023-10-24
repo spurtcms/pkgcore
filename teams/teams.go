@@ -394,3 +394,26 @@ func (a TeamAuth) ChangeYourPassword(password string) (success bool, err error) 
 
 	return true, nil
 }
+
+// Check role already used or not
+func (a TeamAuth) CheckRoleUsed(roleid int) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var tbluser TblUser
+
+	err := TM.CheckRoleUsed(&tbluser, roleid, a.Authority.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
+
+}
