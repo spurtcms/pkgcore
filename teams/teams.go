@@ -93,7 +93,7 @@ func (a TeamAuth) CreateUser(teamcreate TeamCreate) error {
 		return checkerr
 	}
 
-	if teamcreate.RoleId == 0 || teamcreate.FirstName == "" || teamcreate.LastName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" || teamcreate.Password == "" {
+	if teamcreate.RoleId == 0 || teamcreate.FirstName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" || teamcreate.Password == "" {
 
 		return errors.New("given some values is empty")
 	}
@@ -168,7 +168,7 @@ func (a TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 		return checkerr
 	}
 
-	if teamcreate.RoleId == 0 || teamcreate.FirstName == "" || teamcreate.LastName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" || teamcreate.Password == "" {
+	if teamcreate.RoleId == 0 || teamcreate.FirstName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" {
 
 		return errors.New("given some values is empty")
 	}

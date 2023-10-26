@@ -241,6 +241,7 @@ func (a Role) CreateRole(rolec RoleCreation) error {
 			return err
 		}
 
+		return nil
 	}
 
 	return errors.New("not authorized")
@@ -284,6 +285,8 @@ func (a Role) UpdateRole(rolec RoleCreation, roleid int) (err error) {
 			return err1
 		}
 
+		return nil
+
 	}
 
 	return errors.New("not authorized")
@@ -316,6 +319,8 @@ func (a Role) DeleteRole(roleid int) (err error) {
 
 			return err1
 		}
+
+		return nil
 
 	}
 	return errors.New("not authorized")
@@ -552,7 +557,7 @@ func (a Authority) IsGranted(modulename string, permisison Action) (bool, error)
 
 	} else {
 
-		if err := a.DB.Debug().Table("tbl_module_permissions").Where("module_id=? and display_name=?", modid, permisison).Find(&modulepermission).Error; err != nil {
+		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and display_name=?", modid, permisison).Find(&modulepermission).Error; err != nil {
 
 			return false, err
 		}
