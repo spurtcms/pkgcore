@@ -46,7 +46,7 @@ func MigrationTable(db *gorm.DB) {
 		TblRole{},
 	)
 
-	db.Exec(`insert into tbl_roles('id','name','description','is_active','created_by','created_on') values(1,'admin','Has the full administration power',1,1,'2023-07-25 05:50:14')`)
+	db.Exec(`insert into tbl_roles('id','name','slug,'description','is_active','created_by','created_on') values(1,'Admin','admin','Has the full administration power',1,1,'2023-07-25 05:50:14')`)
 
 	db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS tbl_role_permisison_unique
     ON public.tbl_role_permissions USING btree

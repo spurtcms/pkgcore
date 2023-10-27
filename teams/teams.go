@@ -266,6 +266,8 @@ func (a TeamAuth) DeleteUser(id int) error {
 
 		user.IsDeleted = 1
 
+		user.Id = id
+
 		err := TM.DeleteUser(&user, a.Authority.DB)
 
 		if err != nil {
