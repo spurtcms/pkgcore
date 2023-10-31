@@ -1,6 +1,9 @@
 package memberaccess
 
 import (
+	"errors"
+	"log"
+
 	"github.com/spurtcms/spurtcms-core/auth"
 	"github.com/spurtcms/spurtcms-core/member"
 	"gorm.io/gorm"
@@ -11,6 +14,7 @@ type AccessAuth struct {
 }
 
 type AccessType struct{}
+
 var AT AccessType
 
 func MigrateTables(db *gorm.DB) {
@@ -108,4 +112,63 @@ func (a AccessAuth) GetGroup() (pagegroupid []int, err error) {
 
 	return pgroupid, nil
 
+}
+
+/*Check LoginPage*/
+func (a AccessAuth) CheckPageLogin(pageid int) (bool, error) {
+
+	var page []TblAccessControlUserGroup
+
+	AT.CheckPageRestrict(&page, pageid, a.Authority.DB)
+
+	_, groupid, err := member.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if err != nil {
+
+		log.Println(err)
+
+	}
+
+	var loginflg bool
+	
+	var MemberNot bool
+
+	for _, val := range page {
+
+		if groupid == 0 && val.PageId == pageid {
+
+			loginflg = true
+
+			return true, nil
+
+		} else {
+
+			loginflg = false
+		}
+
+		if groupid == val.MemberGroupId && val.PageId == pageid {
+
+			MemberNot = true
+
+			return true, nil
+
+		} else {
+
+			MemberNot = false
+
+		}
+
+	}
+
+	if !loginflg {
+
+		return false, errors.New("login required")
+	}
+
+	if !MemberNot {
+
+		return false, errors.New("not permitted")
+	}
+
+	return true, nil
 }
