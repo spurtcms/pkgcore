@@ -129,8 +129,8 @@ func (a AccessAuth) CheckPageLogin(pageid int) (bool, error) {
 
 	}
 
-	var loginflg bool
-	
+	var loginflg = false
+
 	var MemberNot bool
 
 	for _, val := range page {
@@ -139,18 +139,19 @@ func (a AccessAuth) CheckPageLogin(pageid int) (bool, error) {
 
 			loginflg = true
 
-			return true, nil
+			break
 
-		} else {
-
-			loginflg = false
 		}
+
+	}
+
+	for _, val := range page {
 
 		if groupid == val.MemberGroupId && val.PageId == pageid {
 
 			MemberNot = true
 
-			return true, nil
+			break
 
 		} else {
 
@@ -160,7 +161,7 @@ func (a AccessAuth) CheckPageLogin(pageid int) (bool, error) {
 
 	}
 
-	if !loginflg {
+	if loginflg {
 
 		return false, errors.New("login required")
 	}
