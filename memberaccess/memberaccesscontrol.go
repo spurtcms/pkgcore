@@ -161,15 +161,18 @@ func (a AccessAuth) CheckPageLogin(pageid int) (bool, error) {
 
 	}
 
-	if loginflg {
+	if len(page) > 0 {
 
-		return false, errors.New("login required")
+		if loginflg {
+
+			return false, errors.New("login required")
+		}
+
+		if !MemberNot {
+
+			return false, errors.New("not permitted")
+		}
+
 	}
-
-	if !MemberNot {
-
-		return false, errors.New("not permitted")
-	}
-
 	return true, nil
 }
