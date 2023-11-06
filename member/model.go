@@ -1,7 +1,6 @@
 package member
 
 import (
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -83,7 +82,7 @@ type Filter struct {
 
 func (as Authstruct) MemberGroupList(membergroup []TblMemberGroup, limit int, offset int, filter Filter, DB *gorm.DB) (membergroupl []TblMemberGroup, TotalMemberGroup int64, err error) {
 
-	query := DB.Table("tbl_member_group").Where("is_deleted = 0").Order("id desc")
+	query := DB.Model(TblMemberGroup{}).Where("is_deleted = 0").Order("id desc")
 
 	if filter.Keyword != "" {
 
@@ -108,7 +107,7 @@ func (as Authstruct) MemberGroupList(membergroup []TblMemberGroup, limit int, of
 // Member Group Insert
 func (as Authstruct) MemberGroupCreate(membergroup *TblMemberGroup, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_member_group").Create(&membergroup).Error; err != nil {
+	if err := DB.Model(TblMemberGroup{}).Create(&membergroup).Error; err != nil {
 
 		return err
 	}
@@ -119,7 +118,7 @@ func (as Authstruct) MemberGroupCreate(membergroup *TblMemberGroup, DB *gorm.DB)
 // Member Group Update
 func (as Authstruct) MemberGroupUpdate(membergroup *TblMemberGroup, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_member_group").Where("id=?", id).Updates(TblMemberGroup{Name: membergroup.Name, Slug: membergroup.Slug, Description: membergroup.Description, Id: membergroup.Id, ModifiedOn: membergroup.ModifiedOn, ModifiedBy: membergroup.ModifiedBy}).Error; err != nil {
+	if err := DB.Model(TblMemberGroup{}).Where("id=?", id).Updates(TblMemberGroup{Name: membergroup.Name, Slug: membergroup.Slug, Description: membergroup.Description, Id: membergroup.Id, ModifiedOn: membergroup.ModifiedOn, ModifiedBy: membergroup.ModifiedBy}).Error; err != nil {
 
 		return err
 	}
@@ -130,7 +129,7 @@ func (as Authstruct) MemberGroupUpdate(membergroup *TblMemberGroup, id int, DB *
 // Delete the member group data
 func (as Authstruct) MemberGroupDelete(membergroup *TblMemberGroup, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_member_group").Where("id=?", id).Updates(TblMemberGroup{IsDeleted: membergroup.IsDeleted}).Error; err != nil {
+	if err := DB.Model(TblMemberGroup{}).Where("id=?", id).Updates(TblMemberGroup{IsDeleted: membergroup.IsDeleted}).Error; err != nil {
 
 		return err
 
@@ -143,7 +142,7 @@ func (as Authstruct) MemberGroupDelete(membergroup *TblMemberGroup, id int, DB *
 
 func (as Authstruct) MembersList(member []TblMember, limit int, offset int, filter Filter, flag bool, DB *gorm.DB) (memberl []TblMember, Total_Member int64, err error) {
 
-	query := DB.Table("tbl_members").Select("tbl_members.id,tbl_members.uuid,tbl_members.member_group_id,tbl_members.first_name,tbl_members.last_name,tbl_members.email,tbl_members.mobile_no,tbl_members.profile_image,tbl_members.profile_image_path,tbl_members.created_on,tbl_members.created_by,tbl_members.modified_on,tbl_members.modified_by,tbl_members.is_active,tbl_members.is_deleted,tbl_members.deleted_on,tbl_members.deleted_by").
+	query := DB.Model(TblMember{}).Select("tbl_members.id,tbl_members.uuid,tbl_members.member_group_id,tbl_members.first_name,tbl_members.last_name,tbl_members.email,tbl_members.mobile_no,tbl_members.profile_image,tbl_members.profile_image_path,tbl_members.created_on,tbl_members.created_by,tbl_members.modified_on,tbl_members.modified_by,tbl_members.is_active,tbl_members.is_deleted,tbl_members.deleted_on,tbl_members.deleted_by").
 		Joins("left join tbl_member_group on tbl_members.member_group_id = tbl_member_group.id").Where("tbl_members.is_deleted=?", 0).Order("id desc")
 
 	if filter.Keyword != "" {
@@ -176,7 +175,7 @@ func (as Authstruct) GetGroupData(membergroup []TblMemberGroup, DB *gorm.DB) (me
 
 	var membergrouplist []TblMemberGroup
 
-	if err := DB.Table("tbl_member_group").Where("is_deleted = 0 and is_active = 1").Find(&membergrouplist).Error; err != nil {
+	if err := DB.Model(TblMemberGroup{}).Where("is_deleted = 0 and is_active = 1").Find(&membergrouplist).Error; err != nil {
 
 		return []TblMemberGroup{}, err
 
@@ -189,7 +188,7 @@ func (as Authstruct) GetGroupData(membergroup []TblMemberGroup, DB *gorm.DB) (me
 // Member Insert
 func (as Authstruct) MemberCreate(member *TblMember, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_members").Create(&member).Error; err != nil {
+	if err := DB.Model(TblMember{}).Create(&member).Error; err != nil {
 
 		return err
 	}
@@ -200,7 +199,7 @@ func (as Authstruct) MemberCreate(member *TblMember, DB *gorm.DB) error {
 // Update Member
 func (as Authstruct) UpdateMember(member *TblMember, DB *gorm.DB) error {
 
-	query := DB.Table("tbl_members").Where("id=?", member.Id)
+	query := DB.Model(TblMember{}).Where("id=?", member.Id)
 
 	if member.Password == "" && member.ProfileImage == "" && member.ProfileImagePath == "" {
 
@@ -217,7 +216,7 @@ func (as Authstruct) UpdateMember(member *TblMember, DB *gorm.DB) error {
 
 func (as Authstruct) MemberDetails(member *TblMember, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_members").Where("id=?", id).First(&member).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("id=?", id).First(&member).Error; err != nil {
 		return err
 
 	}
@@ -240,12 +239,12 @@ func (as Authstruct) DeleteMember(member *TblMember, id int, DB *gorm.DB) error 
 func (AS Authstruct) CheckEmailInMember(member *TblMember, email string, userid int, DB *gorm.DB) error {
 
 	if userid == 0 {
-		if err := DB.Table("tbl_members").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and is_deleted=0", email).First(&member).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and is_deleted=0", email).First(&member).Error; err != nil {
 
 			return err
 		}
 	} else {
-		if err := DB.Table("tbl_members").Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and id not in (?) and is_deleted = 0 ", email, userid).First(&member).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(email))=LOWER(TRIM(?)) and id not in (?) and is_deleted = 0 ", email, userid).First(&member).Error; err != nil {
 
 			return err
 		}
@@ -258,13 +257,13 @@ func (As Authstruct) CheckNumberInMember(member *TblMember, number string, useri
 
 	if userid == 0 {
 
-		if err := DB.Table("tbl_members").Where("mobile_no = ? and is_deleted = 0", number).First(&member).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("mobile_no = ? and is_deleted = 0", number).First(&member).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Table("tbl_members").Where("mobile_no = ? and id not in (?) and is_deleted=0", number, userid).First(&member).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("mobile_no = ? and id not in (?) and is_deleted=0", number, userid).First(&member).Error; err != nil {
 
 			return err
 		}
@@ -276,7 +275,7 @@ func (As Authstruct) CheckNumberInMember(member *TblMember, number string, useri
 // upateotp
 func (As Authstruct) UpdateOTP(tblmem *TblMember, otp int, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"otp": tblmem.Otp, "otp_expiry": tblmem.OtpExpiry}).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("id=?", memberid).UpdateColumns(map[string]interface{}{"otp": tblmem.Otp, "otp_expiry": tblmem.OtpExpiry}).Error; err != nil {
 
 		return err
 	}
@@ -287,7 +286,7 @@ func (As Authstruct) UpdateOTP(tblmem *TblMember, otp int, memberid int, DB *gor
 // updateemail
 func (As Authstruct) UpdateEmail(email string, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"email": email}).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("id=?", memberid).UpdateColumns(map[string]interface{}{"email": email}).Error; err != nil {
 
 		return err
 	}
@@ -298,7 +297,7 @@ func (As Authstruct) UpdateEmail(email string, memberid int, DB *gorm.DB) error 
 // updatePassword
 func (As Authstruct) UpdatePassword(password string, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"password": password}).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("id=?", memberid).UpdateColumns(map[string]interface{}{"password": password}).Error; err != nil {
 
 		return err
 	}
@@ -309,7 +308,7 @@ func (As Authstruct) UpdatePassword(password string, memberid int, DB *gorm.DB) 
 // Member la IsActive Function
 func (As Authstruct) MemberIsActive(memberstatus TblMemberGroup, memberid int, status int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_member_group").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
+	if err := DB.Model(TblMemberGroup{}).Where("id=?", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
 
 		return err
 	}
@@ -320,7 +319,7 @@ func (As Authstruct) MemberIsActive(memberstatus TblMemberGroup, memberid int, s
 // Delete Popup
 func (As Authstruct) MemberDeletePopup(id int, DB *gorm.DB) (member TblMember, err error) {
 
-	if err := DB.Table("tbl_members").Where("member_group_id=? and is_deleted = 0", id).Find(&member).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("member_group_id=? and is_deleted = 0", id).Find(&member).Error; err != nil {
 
 		return TblMember{}, err
 	}
@@ -331,7 +330,7 @@ func (As Authstruct) MemberDeletePopup(id int, DB *gorm.DB) (member TblMember, e
 // Get Member group data
 func (As Authstruct) GetMemberById(membergroup TblMemberGroup, id int, DB *gorm.DB) (err error) {
 
-	if err := DB.Table("tbl_member_group").Where("id=?", id).First(&membergroup).Error; err != nil {
+	if err := DB.Model(TblMemberGroup{}).Where("id=?", id).First(&membergroup).Error; err != nil {
 
 		return err
 	}
@@ -342,17 +341,15 @@ func (As Authstruct) GetMemberById(membergroup TblMemberGroup, id int, DB *gorm.
 // Name already exists
 func (As Authstruct) CheckNameInMember(member *TblMember, userid int, name string, DB *gorm.DB) error {
 
-	fmt.Println("name in model", name)
-
 	if userid == 0 {
 
-		if err := DB.Table("tbl_members").Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", name).First(&member).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", name).First(&member).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Table("tbl_members").Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&member).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&member).Error; err != nil {
 
 			return err
 		}
@@ -363,7 +360,7 @@ func (As Authstruct) CheckNameInMember(member *TblMember, userid int, name strin
 
 func (AS Authstruct) MemberUpdate(member *TblMember, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath}).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath}).Error; err != nil {
 
 		return err
 	}

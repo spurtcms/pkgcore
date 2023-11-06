@@ -291,3 +291,59 @@ func (as Authstruct) GetRoleById(role *TblRole, id int, DB *gorm.DB) error {
 
 	return nil
 }
+
+/*create json module permission*/
+func (as Authstruct) CreateModulePermission(modpermission *TblModulePermission, DB *gorm.DB) (modper *TblModulePermission, err error) {
+
+	if err := DB.Table("tbl_module_permissions").Create(&modpermission).Error; err != nil {
+
+		return &TblModulePermission{}, err
+
+	}
+
+	return modpermission, nil
+}
+
+/*single creation*/
+func (as Authstruct) CreateRolePermissionsingle(roleper *TblRolePermission, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_role_permissions").Create(&roleper).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
+}
+
+/*Get Id by RouteName*/
+func (as Authstruct) GetIdByRouteName(tblmodper *TblModulePermission, id string, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_module_permissions").Where("route_name=?", "/channel/entrylist/"+id).First(&tblmodper).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+/*Delete Role Permission by id*/
+func (as Authstruct) Deleterolepermission(TblRolePermission *TblRolePermission, id int, DB *gorm.DB) error {
+
+	if err := DB.Where("permission_id=?", id).Delete(&TblRolePermission).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (as Authstruct) DeleteModulePermissioninEntries(tblmodper *TblModulePermission, id string, DB *gorm.DB) error {
+
+	if err := DB.Where("route_name=?", "/channel/entrylist/"+id).Delete(&tblmodper).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}

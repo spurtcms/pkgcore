@@ -550,7 +550,7 @@ func (a Authority) IsGranted(modulename string, permisison Action) (bool, error)
 
 	if permisison == "CRUD" {
 
-		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete')", modid).Find(&modulepermission).Error; err != nil {
+		if err := a.DB.Table("tbl_module_permissions").Where("id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete')", modid).Find(&modulepermission).Error; err != nil {
 
 			return false, err
 		}
