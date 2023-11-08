@@ -78,7 +78,7 @@ func (at AccessType) GetGroupByMemberId(tblaccess *[]TblAccessControlUserGroup, 
 /**/
 func (at AccessType) CheckPageRestrict(page *[]TblAccessControlUserGroup, pageid int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_user_group").Select("tbl_access_control_user_group.*,tbl_access_control_pages.page_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id = tbl_access_control_pages.id").Where("page_id=?", pageid).Find(&page).Error; err != nil {
+	if err := DB.Table("tbl_access_control_user_group").Select("tbl_access_control_user_group.*,tbl_access_control_pages.page_id").Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id = tbl_access_control_user_group.id").Where("page_id=? and tbl_access_control_pages.is_deleted=0", pageid).Find(&page).Error; err != nil {
 
 		return err
 	}

@@ -347,3 +347,15 @@ func (as Authstruct) DeleteModulePermissioninEntries(tblmodper *TblModulePermiss
 
 	return nil
 }
+
+/*update channel entry permission*/
+func (as Authstruct) UpdateChannelNameInEntries(modper *TblModulePermission, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_module_permissions").Where("route_name=?", modper.RouteName).UpdateColumns(map[string]interface{}{
+		"display_name": modper.DisplayName}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
