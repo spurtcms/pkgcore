@@ -10,7 +10,7 @@ import (
 )
 
 type AccessAuth struct {
-	Authority auth.Authority
+	Authority auth.Authorization
 }
 
 type AccessType struct{}

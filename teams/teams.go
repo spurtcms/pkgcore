@@ -14,7 +14,7 @@ import (
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type TeamAuth struct {
-	Authority *auth.Authority
+	Authority *auth.Authorization
 }
 
 type Team struct{}

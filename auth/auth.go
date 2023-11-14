@@ -14,18 +14,18 @@ import (
 
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
-type Authority struct {
+type Authorization struct {
 	DB     *gorm.DB
 	Token  string
 	Secret string
 }
 
 type Role struct {
-	Auth Authority
+	Auth Authorization
 }
 
 type PermissionAu struct {
-	Auth Authority
+	Auth Authorization
 }
 
 type Authstruct struct{}
@@ -512,7 +512,7 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 }
 
 // Check User Permission
-func (a Authority) IsGranted(modulename string, permisison Action) (bool, error) {
+func (a Authorization) IsGranted(modulename string, permisison Action) (bool, error) {
 
 	_, roleid, checkerr := VerifyToken(a.Token, a.Secret)
 

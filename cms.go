@@ -10,9 +10,9 @@ import (
 )
 
 // create instance
-func NewInstance(a *authority.Option) authority.Authority {
+func NewInstance(a *authority.Option) authority.Authorization {
 
-	auth := authority.Authority{
+	auth := authority.Authorization{
 		DB:     a.DB,
 		Token:  a.Token,
 		Secret: a.Secret,

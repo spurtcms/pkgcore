@@ -16,11 +16,11 @@ import (
 var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type Memberauth struct {
-	Authority *auth.Authority
+	Authority *auth.Authorization
 }
 
 type MemberAuth struct {
-	Auth *auth.Authority
+	Auth *auth.Authorization
 }
 
 type Image struct {
