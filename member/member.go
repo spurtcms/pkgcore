@@ -515,34 +515,51 @@ func (a Memberauth) DeleteMember(id int) error {
 }
 
 // Check Email is already exits or not
-func (a Memberauth) CheckEmailInMember(id int, email string) error {
+func (a Memberauth) CheckEmailInMember(id int, email string) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return false, checkerr
 	}
 
 	check, err := a.Authority.IsGranted("Member", auth.Create)
 
 	if err != nil {
 
-		return err
+		return false, err
 	}
 
 	if check {
+
 		var member TblMember
 
 		err := AS.CheckEmailInMember(&member, email, id, a.Authority.DB)
 
 		if err != nil {
 
-			return err
+			return false, err
 		}
 
+		return true, nil
 	}
-	return nil
+	return false, errors.New("not authorized")
+}
+
+// Check Email is already exits or not
+func (a MemberAuth) CheckEmailInMember(id int, email string) (bool, error) {
+
+	var member TblMember
+
+	err := AS.CheckEmailInMember(&member, email, id, a.Auth.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Check Number is already exits or not
@@ -574,6 +591,29 @@ func (a Memberauth) CheckNumberInMember(id int, number string) error {
 
 	}
 	return nil
+}
+
+// Check Number is already exits or not
+func (a MemberAuth) CheckNumberInMember(id int, number string) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var member TblMember
+
+	err := AS.CheckNumberInMember(&member, number, id, a.Auth.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
+
 }
 
 // Check Name is already exits or not
