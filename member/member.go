@@ -935,14 +935,14 @@ func (M MemberAuth) ChangeEmailId(otp int, emailid string) (bool, error) {
 }
 
 // ChangePassword
-func (M MemberAuth) ChangePassword(otp int, password string) (bool, error) {
+func (M MemberAuth) ChangePassword(otp int, memberid int, password string) (bool, error) {
 
-	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+	// memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
 
-	if checkerr != nil {
+	// if checkerr != nil {
 
-		return false, checkerr
-	}
+	// 	return false, checkerr
+	// }
 
 	var tblmember TblMember
 
@@ -970,14 +970,14 @@ func (M MemberAuth) ChangePassword(otp int, password string) (bool, error) {
 }
 
 // get member details
-func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
+func (M MemberAuth) GetMemberDetails(memberid int) (members TblMember, err error) {
 
-	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+	// memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
 
-	if checkerr != nil {
+	// if checkerr != nil {
 
-		return TblMember{}, checkerr
-	}
+	// 	return TblMember{}, checkerr
+	// }
 
 	var member TblMember
 

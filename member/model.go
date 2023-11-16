@@ -214,9 +214,9 @@ func (as Authstruct) UpdateMember(member *TblMember, DB *gorm.DB) error {
 
 // Get Member Details
 
-func (as Authstruct) MemberDetails(member *TblMember, id int, DB *gorm.DB) error {
+func (as Authstruct) MemberDetails(member *TblMember, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMember{}).Where("id=?", id).First(&member).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("id=?", memberid).First(&member).Error; err != nil {
 		return err
 
 	}
