@@ -548,7 +548,7 @@ func (a Memberauth) CheckEmailInMember(id int, email string) (bool, error) {
 }
 
 // Check Email is already exits or not
-func (a MemberAuth) CheckEmailInMember(id int, email string) (bool, error) {
+func (a MemberAuth) CheckEmailInMember(id int, email string) (TblMember, bool, error) {
 
 	var member TblMember
 
@@ -556,10 +556,10 @@ func (a MemberAuth) CheckEmailInMember(id int, email string) (bool, error) {
 
 	if err != nil {
 
-		return false, err
+		return TblMember{}, false, err
 	}
 
-	return true, nil
+	return member, true, nil
 }
 
 // Check Number is already exits or not
@@ -874,14 +874,14 @@ func hashingPassword(pass string) string {
 
 // This OTP valid only 5 minutes
 // updateOTP
-func (M MemberAuth) UpdateOtp(otp int) (bool, error) {
+func (M MemberAuth) UpdateOtp(otp int, memberid int) (bool, error) {
 
-	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+	// memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
 
-	if checkerr != nil {
+	// if checkerr != nil {
 
-		return false, checkerr
-	}
+	// 	return false, checkerr
+	// }
 
 	var tblmember TblMember
 
