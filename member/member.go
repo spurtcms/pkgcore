@@ -959,7 +959,9 @@ func (M MemberAuth) ChangePassword(otp int, memberid int, password string) (bool
 
 	}
 
-	err := AS.UpdatePassword(password, memberid, M.Auth.DB)
+	hashpass := hashingPassword(password)
+
+	err := AS.UpdatePassword(hashpass, memberid, M.Auth.DB)
 
 	if err != nil {
 
