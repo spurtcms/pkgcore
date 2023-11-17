@@ -805,7 +805,7 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	var member TblMember
 
-	if err := db.Table("tbl_members").Where("email = ?", username).First(&member).Error; err != nil {
+	if err := db.Table("tbl_members").Where("email = ? and is_deleted=0", username).First(&member).Error; err != nil {
 
 		return "", errors.New("your email not registered")
 
@@ -972,14 +972,14 @@ func (M MemberAuth) ChangePassword(otp int, memberid int, password string) (bool
 }
 
 // get member details
-func (M MemberAuth) GetMemberDetails(memberid int) (members TblMember, err error) {
+func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
 
-	// memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
+	memberid, _, checkerr := VerifyToken(M.Auth.Token, M.Auth.Secret)
 
-	// if checkerr != nil {
+	if checkerr != nil {
 
-	// 	return TblMember{}, checkerr
-	// }
+		return TblMember{}, checkerr
+	}
 
 	var member TblMember
 
