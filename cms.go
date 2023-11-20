@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	authority "github.com/spurtcms/spurtcms-core/auth"
-	"github.com/spurtcms/spurtcms-core/teams"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,8 +17,8 @@ func NewInstance(a *authority.Option) authority.Authorization {
 		Secret: a.Secret,
 	}
 
-	authority.MigrationTable(auth.DB)
-	teams.MigrateTables(auth.DB)
+	// authority.MigrationTable(auth.DB)
+	// teams.MigrateTables(auth.DB)
 
 	return auth
 }

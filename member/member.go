@@ -596,12 +596,12 @@ func (a Memberauth) CheckNumberInMember(id int, number string) error {
 // Check Number is already exits or not
 func (a MemberAuth) CheckNumberInMember(id int, number string) (bool, error) {
 
-	_, _, checkerr := auth.VerifyToken(a.Auth.Token, a.Auth.Secret)
+	// _, _, checkerr := auth.VerifyToken(a.Auth.Token, a.Auth.Secret)
 
-	if checkerr != nil {
+	// if checkerr != nil {
 
-		return false, checkerr
-	}
+	// 	return false, checkerr
+	// }
 
 	var member TblMember
 
@@ -997,6 +997,23 @@ func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
 // register member
 func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) {
 
+	if MemC.FirstName != "" {
+
+		return false, errors.New("firstname is empty can't register")
+
+	} else if MemC.Email != "" {
+
+		return false, errors.New("email is empty can't register")
+
+	} else if MemC.MobileNo != "" {
+
+		return false, errors.New("mobile number is empty can't register")
+
+	} else if MemC.Password != "" {
+
+		return false, errors.New("password is empty can't register")
+	}
+
 	Pass := hashingPassword(MemC.Password)
 
 	var member TblMember
@@ -1042,6 +1059,16 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 		return false, checkerr
 	}
 
+	if MemC.FirstName != "" {
+
+		return false, errors.New("firstname is empty can't register")
+
+	} else if MemC.MobileNo != "" {
+
+		return false, errors.New("mobile number is empty can't register")
+
+	}
+	
 	var member TblMember
 
 	member.FirstName = MemC.FirstName
