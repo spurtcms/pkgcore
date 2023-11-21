@@ -360,9 +360,11 @@ func (As Authstruct) CheckNameInMember(member *TblMember, userid int, name strin
 
 func (AS Authstruct) MemberUpdate(member *TblMember, id int, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMember{}).Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath}).Error; err != nil {
+	if err := DB.Model(TblMember{}).Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "email": member.Email, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath,
+		"password": member.Password}).Error; err != nil {
 
 		return err
 	}
+
 	return nil
 }

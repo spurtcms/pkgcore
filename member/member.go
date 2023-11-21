@@ -1059,16 +1059,6 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 		return false, checkerr
 	}
 
-	if MemC.FirstName != "" {
-
-		return false, errors.New("firstname is empty can't register")
-
-	} else if MemC.MobileNo != "" {
-
-		return false, errors.New("mobile number is empty can't register")
-
-	}
-	
 	var member TblMember
 
 	member.FirstName = MemC.FirstName
@@ -1076,6 +1066,20 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 	member.LastName = MemC.LastName
 
 	member.MobileNo = MemC.MobileNo
+
+	member.ProfileImage = MemC.ProfileImage
+
+	member.ProfileImagePath = MemC.ProfileImagePath
+
+	member.Password = hashingPassword(MemC.Password)
+
+	member.Email = MemC.Email
+
+	// member.IsActive = MemC.IsActive
+
+	// member.Username = MemC.Username
+
+	// member.MemberGroupId = MemC.GroupId
 
 	member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
