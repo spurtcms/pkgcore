@@ -359,3 +359,32 @@ func (as Authstruct) UpdateChannelNameInEntries(modper *TblModulePermission, DB 
 
 	return nil
 }
+
+/*Check role*/
+func (as Authstruct) CheckRoleExists(role *TblRole, id int, name string, DB *gorm.DB) error {
+
+	if id == 0 {
+		if err := DB.Model(TblRole{}).Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted = 0 ", name).First(&role).Error; err != nil {
+
+			return err
+		}
+	} else {
+		if err := DB.Model(TblRole{}).Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in(?) and is_deleted= 0 ", name, id).First(&role).Error; err != nil {
+
+			return err
+		}
+	}
+	return nil
+
+}
+
+/*update role isactive*/
+func (as Authstruct) RoleIsActive(role *TblRole, id, val int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_roles").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_active": val, "modified_by": role.ModifiedBy, "modified_on": role.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}

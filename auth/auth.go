@@ -217,7 +217,7 @@ func (a Role) CreateRole(rolec RoleCreation) error {
 
 	if check {
 
-		if rolec.Name == "" || rolec.Description == "" {
+		if rolec.Name == "" {
 
 			return errors.New("empty value")
 		}
@@ -293,9 +293,43 @@ func (a Role) UpdateRole(rolec RoleCreation, roleid int) (err error) {
 }
 
 // delete role
-func (a Role) DeleteRole(roleid int) (err error) {
+func (a Role) DeleteRole(roleid int) (bool, error) {
 
 	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		if roleid <= 0 {
+
+			return false, errors.New("invalid role id cannot delete")
+		}
+
+		var role TblRole
+
+		err1 := AS.RoleDelete(&role, roleid, a.Auth.DB)
+
+		if err1 != nil {
+
+			return false, err1
+		}
+
+		return true, nil
+
+	}
+	return false, errors.New("not authorized")
+}
+
+// change role status 0-inactive, 1-active
+func (a Role) RoleStatus(roleid int, status int) (err error) {
+
+	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
 	if checkerr != nil {
 
@@ -308,14 +342,18 @@ func (a Role) DeleteRole(roleid int) (err error) {
 
 		if roleid <= 0 {
 
-			return errors.New("invalid role id cannot delete")
+			return errors.New("invalid role id cannot change the status")
 		}
 
-		var role TblRole
+		var rolestatus TblRole
 
-		err1 := AS.RoleDelete(&role, roleid, a.Auth.DB)
+		rolestatus.ModifiedBy = userid
 
-		if err != nil {
+		rolestatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		err1 := AS.RoleIsActive(&rolestatus, roleid, status, a.Auth.DB)
+
+		if err1 != nil {
 
 			return err1
 		}
@@ -324,6 +362,33 @@ func (a Role) DeleteRole(roleid int) (err error) {
 
 	}
 	return errors.New("not authorized")
+}
+
+/*Check Role Already Exists*/
+func (a Role) CheckRoleAlreadyExists(roleid int, rolename string) (bool, error) {
+
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var role TblRole
+
+	err1 := AS.CheckRoleExists(&role, roleid, rolename, a.Auth.DB)
+
+	if err1 != nil {
+
+		return false, err1
+	}
+
+	if role.Id == 0 {
+
+		return false, nil
+	}
+
+	return true, nil
 }
 
 /**/
@@ -340,8 +405,8 @@ func (a Role) GetAllRoleData() (roles []TblRole, err error) {
 	return role, nil
 }
 
-// create permission
-func (a PermissionAu) CreatePermission(Perm MultiPermissin) error {
+// create/update permission
+func (a PermissionAu) CreateUpdatePermission(Perm MultiPermissin) error {
 
 	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
@@ -464,6 +529,8 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 			newmod.ModuleName = val.ModuleName
 
 			newmod.IsActive = val.IsActive
+
+			newmod.IconPath = val.IconPath
 
 			newmod.CreatedDate = val.CreatedOn.In(IST).Format("02 Jan 2006 03:04 PM")
 
