@@ -204,13 +204,13 @@ func (a Role) GetRoleById(roleid int) (tblrole TblRole, err error) {
 }
 
 // create role
-func (a Role) CreateRole(rolec RoleCreation) error {
+func (a Role) CreateRole(rolec RoleCreation) (TblRole, error) {
 
 	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return TblRole{}, checkerr
 	}
 
 	check, _ := a.Auth.IsGranted("Roles", CRUD)
@@ -219,7 +219,7 @@ func (a Role) CreateRole(rolec RoleCreation) error {
 
 		if rolec.Name == "" {
 
-			return errors.New("empty value")
+			return TblRole{}, errors.New("empty value")
 		}
 
 		var role TblRole
@@ -238,13 +238,13 @@ func (a Role) CreateRole(rolec RoleCreation) error {
 
 		if err != nil {
 
-			return err
+			return TblRole{}, err
 		}
 
-		return nil
+		return role, nil
 	}
 
-	return errors.New("not authorized")
+	return TblRole{}, errors.New("not authorized")
 }
 
 // update role
@@ -594,12 +594,12 @@ func (a Authorization) IsGranted(modulename string, permisison Action) (bool, er
 
 	var modpermissions TblModulePermission
 
-	if err := a.DB.Debug().Table("tbl_modules").Where("module_name=?", modulename).Find(&module).Error; err != nil {
+	if err := a.DB.Table("tbl_modules").Where("module_name=?", modulename).Find(&module).Error; err != nil {
 
 		return false, err
 	}
 
-	if err1 := a.DB.Debug().Table("tbl_module_permissions").Where("display_name=?", modulename).Find(&modpermissions).Error; err1 != nil {
+	if err1 := a.DB.Table("tbl_module_permissions").Where("display_name=?", modulename).Find(&modpermissions).Error; err1 != nil {
 
 		return false, err1
 	}
