@@ -128,7 +128,7 @@ type Permission struct {
 type MultiPermissin struct {
 	RoleId      int
 	Ids         []int
-	Permissions []Permission
+	// Permissions []Permission
 }
 
 type RoleCreation struct {

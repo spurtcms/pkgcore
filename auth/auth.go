@@ -405,7 +405,56 @@ func (a Role) GetAllRoleData() (roles []TblRole, err error) {
 	return role, nil
 }
 
-// create/update permission
+// create permission
+func (a PermissionAu) CreatePermission(Perm MultiPermissin) error {
+
+	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, err := a.Auth.IsGranted("Roles", CRUD)
+
+	if err != nil {
+
+		return err
+	}
+
+	if check {
+
+		var createrolepermission []TblRolePermission
+
+		for _, roleperm := range Perm.Ids {
+
+			var createmod TblRolePermission
+
+			createmod.PermissionId = roleperm
+
+			createmod.RoleId = Perm.RoleId
+
+			createmod.CreatedBy = userid
+
+			createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+			createrolepermission = append(createrolepermission, createmod)
+
+		}
+
+		if len(createrolepermission) != 0 {
+
+			AS.CreateRolePermission(&createrolepermission, a.Auth.DB)
+
+		}
+
+	}
+
+	return errors.New("not authorized")
+
+}
+
+// update permission
 func (a PermissionAu) CreateUpdatePermission(Perm MultiPermissin) error {
 
 	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
