@@ -415,7 +415,7 @@ func (a PermissionAu) CreateUpdatePermission(Perm MultiPermissin) error {
 		return checkerr
 	}
 
-	check, err := a.Auth.IsGranted("Permissions", CRUD)
+	check, err := a.Auth.IsGranted("Roles", CRUD)
 
 	if err != nil {
 
@@ -501,7 +501,7 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 		return []TblModule{}, 0, checkerr
 	}
 
-	check, err := a.Auth.IsGranted("Permissions", CRUD)
+	check, err := a.Auth.IsGranted("Roles", CRUD)
 
 	if err != nil {
 
@@ -574,6 +574,46 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 	} else {
 
 		return []TblModule{}, 0, errors.New("not authorized")
+	}
+
+}
+
+// permission List
+func (a PermissionAu) GetPermissionDetailsById(roleid int) (rolepermissionid []int, err error) {
+
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return []int{}, checkerr
+	}
+
+	check, err := a.Auth.IsGranted("Roles", CRUD)
+
+	if err != nil {
+
+		return []int{}, err
+	}
+
+	if check {
+
+		var permissionid []int
+
+		var roleper []TblRolePermission
+
+		AS.GetPermissionId(&roleper, roleid, a.Auth.DB)
+
+		for _, val := range roleper {
+
+			permissionid = append(permissionid, val.PermissionId)
+
+		}
+
+		return permissionid, nil
+
+	} else {
+
+		return []int{}, errors.New("not authorized")
 	}
 
 }

@@ -388,3 +388,14 @@ func (as Authstruct) RoleIsActive(role *TblRole, id, val int, DB *gorm.DB) error
 
 	return nil
 }
+
+/*Get PermissionId By RoleId*/
+func (as Authstruct) GetPermissionId(perm *[]TblRolePermission, roleid int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblRolePermission{}).Where("role_id=?", roleid).Find(&perm).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
