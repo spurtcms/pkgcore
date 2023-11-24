@@ -126,8 +126,8 @@ type Permission struct {
 }
 
 type MultiPermissin struct {
-	RoleId      int
-	Ids         []int
+	RoleId int
+	Ids    []int
 	// Permissions []Permission
 }
 
@@ -179,7 +179,7 @@ func (as Authstruct) GetRolesData(roles *[]TblRole, DB *gorm.DB) error {
 // Roels Insert
 func (as Authstruct) RoleCreate(role *TblRole, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_roles").Create(role).Error; err != nil {
+	if err := DB.Model(TblRole{}).Create(role).Error; err != nil {
 
 		return err
 	}
@@ -190,7 +190,7 @@ func (as Authstruct) RoleCreate(role *TblRole, DB *gorm.DB) error {
 // Delete the role data
 func (as Authstruct) RoleDelete(role *TblRole, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_roles").Where("id = ?", id).Update("is_deleted", 1).Error; err != nil {
+	if err := DB.Model(TblRole{}).Where("id = ?", id).Update("is_deleted", 1).Error; err != nil {
 
 		return err
 
@@ -202,7 +202,7 @@ func (as Authstruct) RoleDelete(role *TblRole, id int, DB *gorm.DB) error {
 /**/
 func (as Authstruct) RoleUpdate(role *TblRole, DB *gorm.DB) error {
 
-	if err := DB.Model(&role).Where("id=?", role.Id).Updates(TblRole{Name: role.Name, Description: role.Description, Slug: role.Slug, IsActive: role.IsActive, IsDeleted: role.IsDeleted, ModifiedOn: role.ModifiedOn, ModifiedBy: role.ModifiedBy}).Error; err != nil {
+	if err := DB.Model(TblRole{}).Where("id=?", role.Id).Updates(TblRole{Name: role.Name, Description: role.Description, Slug: role.Slug, IsActive: role.IsActive, IsDeleted: role.IsDeleted, ModifiedOn: role.ModifiedOn, ModifiedBy: role.ModifiedBy}).Error; err != nil {
 
 		return err
 	}
@@ -283,7 +283,7 @@ func (as Authstruct) GetAllModules(mod *[]TblModule, limit, offset, id int, filt
 /*Get role by id*/
 func (as Authstruct) GetRoleById(role *TblRole, id int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_roles").Where("id=?", id).First(&role).Error; err != nil {
+	if err := DB.Model(TblRole{}).Where("id=?", id).First(&role).Error; err != nil {
 
 		return err
 

@@ -248,22 +248,22 @@ func (a Role) CreateRole(rolec RoleCreation) (TblRole, error) {
 }
 
 // update role
-func (a Role) UpdateRole(rolec RoleCreation, roleid int) (err error) {
+func (a Role) UpdateRole(rolec RoleCreation, roleid int) (role TblRole, err error) {
 
 	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return TblRole{}, checkerr
 	}
 
 	check, _ := a.Auth.IsGranted("Roles", CRUD)
 
 	if check {
 
-		if rolec.Name == "" || rolec.Description == "" {
+		if rolec.Name == "" {
 
-			return errors.New("empty value")
+			return TblRole{}, errors.New("empty value")
 		}
 
 		var role TblRole
@@ -282,14 +282,14 @@ func (a Role) UpdateRole(rolec RoleCreation, roleid int) (err error) {
 
 		if err1 != nil {
 
-			return err1
+			return TblRole{}, err1
 		}
 
-		return nil
+		return role, nil
 
 	}
 
-	return errors.New("not authorized")
+	return TblRole{}, errors.New("not authorized")
 }
 
 // delete role
@@ -314,6 +314,10 @@ func (a Role) DeleteRole(roleid int) (bool, error) {
 		var role TblRole
 
 		err1 := AS.RoleDelete(&role, roleid, a.Auth.DB)
+
+		var permissions []TblRolePermission
+
+		AS.DeleteRolePermissionById(&permissions, roleid, a.Auth.DB)
 
 		if err1 != nil {
 
@@ -477,6 +481,11 @@ func (a PermissionAu) CreateUpdatePermission(Perm MultiPermissin) error {
 
 		cnerr := AS.CheckPermissionIdNotExist(&checknotexist, Perm.RoleId, Perm.Ids, a.Auth.DB)
 
+		if len(Perm.Ids) == 0 {
+
+			AS.Deleterolepermission(&TblRolePermission{}, Perm.RoleId, a.Auth.DB)
+		}
+
 		if cnerr != nil {
 
 			log.Println(cnerr)
@@ -494,41 +503,39 @@ func (a PermissionAu) CreateUpdatePermission(Perm MultiPermissin) error {
 
 			log.Println(cerr)
 
-		} else {
+		}
 
-			var existid []int
+		var existid []int
 
-			for _, exist := range checkexist {
+		for _, exist := range checkexist {
 
-				existid = append(existid, exist.PermissionId)
+			existid = append(existid, exist.PermissionId)
 
-			}
+		}
 
-			pid := Difference([]int{}, existid)
+		pid := Difference(Perm.Ids, existid)
 
-			var createrolepermission []TblRolePermission
+		var createrolepermission []TblRolePermission
 
-			for _, roleperm := range pid {
+		for _, roleperm := range pid {
 
-				var createmod TblRolePermission
+			var createmod TblRolePermission
 
-				createmod.PermissionId = roleperm
+			createmod.PermissionId = roleperm
 
-				createmod.RoleId = Perm.RoleId
+			createmod.RoleId = Perm.RoleId
 
-				createmod.CreatedBy = userid
+			createmod.CreatedBy = userid
 
-				createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
 
-				createrolepermission = append(createrolepermission, createmod)
+			createrolepermission = append(createrolepermission, createmod)
 
-			}
+		}
 
-			if len(createrolepermission) != 0 {
+		if len(createrolepermission) != 0 {
 
-				AS.CreateRolePermission(&createrolepermission, a.Auth.DB)
-
-			}
+			AS.CreateRolePermission(&createrolepermission, a.Auth.DB)
 
 		}
 

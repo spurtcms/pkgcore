@@ -26,7 +26,7 @@ type TblMember struct {
 	ModifiedOn       time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy       int       `gorm:"DEFAULT:NULL"`
 	MemberGroupId    int
-	Group            []TblMemberGroup `gorm:"-"`
+	GroupName        string `gorm:"-:migration;<-:false"`
 	Password         string
 	Username         string    `gorm:"DEFAULT:NULL"`
 	Otp              int       `gorm:"DEFAULT:NULL"`
@@ -142,8 +142,8 @@ func (as Authstruct) MemberGroupDelete(membergroup *TblMemberGroup, id int, DB *
 
 func (as Authstruct) MembersList(member []TblMember, limit int, offset int, filter Filter, flag bool, DB *gorm.DB) (memberl []TblMember, Total_Member int64, err error) {
 
-	query := DB.Model(TblMember{}).Select("tbl_members.id,tbl_members.uuid,tbl_members.member_group_id,tbl_members.first_name,tbl_members.last_name,tbl_members.email,tbl_members.mobile_no,tbl_members.profile_image,tbl_members.profile_image_path,tbl_members.created_on,tbl_members.created_by,tbl_members.modified_on,tbl_members.modified_by,tbl_members.is_active,tbl_members.is_deleted,tbl_members.deleted_on,tbl_members.deleted_by").
-		Joins("left join tbl_member_group on tbl_members.member_group_id = tbl_member_group.id").Where("tbl_members.is_deleted=?", 0).Order("id desc")
+	query := DB.Model(TblMember{}).Select("tbl_members.id,tbl_members.uuid,tbl_members.member_group_id,tbl_members.first_name,tbl_members.last_name,tbl_members.email,tbl_members.mobile_no,tbl_members.profile_image,tbl_members.profile_image_path,tbl_members.created_on,tbl_members.created_by,tbl_members.modified_on,tbl_members.modified_by,tbl_members.is_active,tbl_members.is_deleted,tbl_members.deleted_on,tbl_members.deleted_by,tbl_member_group.name as group_name").
+		Joins("inner join tbl_member_group on tbl_members.member_group_id = tbl_member_group.id").Where("tbl_members.is_deleted=?", 0).Order("id desc")
 
 	if filter.Keyword != "" {
 
