@@ -1095,3 +1095,34 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 	return true, nil
 
 }
+
+// Check Group Name is already exits or not
+func (a Memberauth) CheckNameInMemberGroup(id int, name string) error {
+
+	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member Group", auth.Create)
+
+	if err != nil {
+
+		return err
+	}
+
+	if check {
+
+		var member TblMemberGroup
+
+		err := AS.CheckNameInMemberGroup(&member, id, name, a.Authority.DB)
+
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}

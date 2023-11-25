@@ -368,3 +368,23 @@ func (AS Authstruct) MemberUpdate(member *TblMember, id int, DB *gorm.DB) error 
 
 	return nil
 }
+
+// Group Name already exists
+func (As Authstruct) CheckNameInMemberGroup(membergrp *TblMemberGroup, userid int, name string, DB *gorm.DB) error {
+
+	if userid == 0 {
+
+		if err := DB.Model(TblMemberGroup{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", name).First(&membergrp).Error; err != nil {
+
+			return err
+		}
+	} else {
+
+		if err := DB.Model(TblMemberGroup{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&membergrp).Error; err != nil {
+
+			return err
+		}
+	}
+
+	return nil
+}
