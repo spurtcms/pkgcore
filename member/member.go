@@ -617,20 +617,20 @@ func (a MemberAuth) CheckNumberInMember(id int, number string) (bool, error) {
 }
 
 // Check Name is already exits or not
-func (a Memberauth) CheckNameInMember(id int, name string) error {
+func (a Memberauth) CheckNameInMember(id int, name string) (bool, error) {
 
-	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return false, checkerr
 	}
 
 	check, err := a.Authority.IsGranted("Member", auth.Create)
 
 	if err != nil {
 
-		return err
+		return false, err
 	}
 
 	if check {
@@ -642,11 +642,14 @@ func (a Memberauth) CheckNameInMember(id int, name string) error {
 		err := AS.CheckNameInMember(&member, id, name, a.Authority.DB)
 
 		if err != nil {
-			return err
+			return false, err
+		}
+		if member.Id == 0 {
+			return false, err
 		}
 
 	}
-	return nil
+	return true, nil
 }
 
 // member group delete popup
@@ -1099,7 +1102,7 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 // Check Group Name is already exits or not
 func (a Memberauth) CheckNameInMemberGroup(id int, name string) error {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 

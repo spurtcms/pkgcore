@@ -370,17 +370,17 @@ func (AS Authstruct) MemberUpdate(member *TblMember, id int, DB *gorm.DB) error 
 }
 
 // Group Name already exists
-func (As Authstruct) CheckNameInMemberGroup(membergrp *TblMemberGroup, userid int, name string, DB *gorm.DB) error {
+func (As Authstruct) CheckNameInMemberGroup(member *TblMemberGroup, userid int, name string, DB *gorm.DB) error {
 
 	if userid == 0 {
 
-		if err := DB.Model(TblMemberGroup{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", name).First(&membergrp).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", name).First(&member).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Model(TblMemberGroup{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&membergrp).Error; err != nil {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&member).Error; err != nil {
 
 			return err
 		}
