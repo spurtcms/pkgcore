@@ -619,7 +619,7 @@ func (a MemberAuth) CheckNumberInMember(id int, number string) (bool, error) {
 // Check Name is already exits or not
 func (a Memberauth) CheckNameInMember(id int, name string) (bool, error) {
 
-	_,_ , checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -1127,5 +1127,61 @@ func (a Memberauth) CheckNameInMemberGroup(id int, name string) error {
 		}
 
 	}
+	return nil
+}
+
+// Update Member Lms
+func (a Memberauth) UpdateMemberLms(Mc MemberCreation, id int) error {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member", auth.Update)
+
+	if err != nil {
+
+		return err
+	}
+
+	if check {
+
+		uvuid := (uuid.New()).String()
+
+		var member TblMember
+
+		member.Uuid = uvuid
+
+		member.Id = id
+
+		member.FirstName = Mc.FirstName
+
+		member.LastName = Mc.LastName
+
+		member.MobileNo = Mc.MobileNo
+
+		member.ProfileImage = Mc.ProfileImage
+
+		member.ProfileImagePath = Mc.ProfileImagePath
+
+		member.ModifiedBy = userid
+
+		member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+		err := AS.UpdateMemberLms(&member, a.Authority.DB)
+
+		if err != nil {
+
+			return err
+		}
+
+	} else {
+
+		return errors.New("not authorized")
+	}
+
 	return nil
 }

@@ -173,69 +173,79 @@ func (a TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 		return errors.New("given some values is empty")
 	}
 
-	user_id := userid
+	check, err := a.Authority.IsGranted("User", auth.Create)
 
-	password := teamcreate.Password
+	if err != nil {
 
-	var user TblUser
-
-	if password != "" {
-
-		hash_pass := hashingPassword(password)
-
-		user.Password = hash_pass
+		return err
 	}
 
-	user.Id = user_id
+	if check {
 
-	user.RoleId = teamcreate.RoleId
+		user_id := userid
 
-	user.FirstName = teamcreate.FirstName
+		password := teamcreate.Password
 
-	user.LastName = teamcreate.LastName
+		var user TblUser
 
-	user.Email = teamcreate.Email
+		if password != "" {
 
-	user.Username = teamcreate.Username
+			hash_pass := hashingPassword(password)
 
-	user.MobileNo = teamcreate.MobileNo
+			user.Password = hash_pass
+		}
 
-	user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		user.Id = user_id
 
-	user.ModifiedBy = user_id
+		user.RoleId = teamcreate.RoleId
 
-	user.IsActive = teamcreate.IsActive
+		user.FirstName = teamcreate.FirstName
 
-	user.DataAccess = teamcreate.DataAccess
+		user.LastName = teamcreate.LastName
 
-	user.ProfileImage = teamcreate.ProfileImage
+		user.Email = teamcreate.Email
 
-	user.ProfileImagePath = teamcreate.ProfileImagePath
+		user.Username = teamcreate.Username
 
-	query := a.Authority.DB.Table("tbl_users").Where("id=?", user.Id)
+		user.MobileNo = teamcreate.MobileNo
 
-	if user.Password == "" {
+		user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+		user.ModifiedBy = user_id
+
+		user.IsActive = teamcreate.IsActive
+
+		user.DataAccess = teamcreate.DataAccess
+
+		user.ProfileImage = teamcreate.ProfileImage
+
+		user.ProfileImagePath = teamcreate.ProfileImagePath
+
+		query := a.Authority.DB.Table("tbl_users").Where("id=?", user.Id)
 
 		if user.Password == "" {
 
-			query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
+			if user.Password == "" {
 
-		}
+				query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
 
-		if err := query.Error; err != nil {
+			}
 
-			return err
-		}
+			if err := query.Error; err != nil {
 
-	} else {
+				return err
+			}
 
-		if err := query.UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess, "password": user.Password}).Error; err != nil {
+		} else {
 
-			return err
+			if err := query.UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess, "password": user.Password}).Error; err != nil {
+
+				return err
+			}
+
 		}
 
 	}
-
 	return nil
 }
 
@@ -418,4 +428,115 @@ func (a TeamAuth) CheckRoleUsed(roleid int) (bool, error) {
 
 	return true, nil
 
+}
+
+// myprofile update//
+func (a TeamAuth) UpdateMyUser(teamcreate TeamCreate) error {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	if teamcreate.FirstName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" {
+
+		return errors.New("given some values is empty")
+	}
+
+	password := teamcreate.Password
+
+	var user TblUser
+
+	if password != "" {
+
+		hash_pass := hashingPassword(password)
+
+		user.Password = hash_pass
+	}
+
+	user.Id = userid
+
+	// user.RoleId = teamcreate.RoleId
+
+	user.FirstName = teamcreate.FirstName
+
+	user.LastName = teamcreate.LastName
+
+	user.Email = teamcreate.Email
+
+	user.Username = teamcreate.Username
+
+	user.MobileNo = teamcreate.MobileNo
+
+	user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+
+	user.ModifiedBy = userid
+
+	user.IsActive = teamcreate.IsActive
+
+	user.DataAccess = teamcreate.DataAccess
+
+	user.ProfileImage = teamcreate.ProfileImage
+
+	user.ProfileImagePath = teamcreate.ProfileImagePath
+
+	query := a.Authority.DB.Table("tbl_users").Where("id=?", user.Id)
+
+	if user.Password == "" {
+
+		if user.Password == "" {
+
+			query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
+
+		}
+
+		if err := query.Error; err != nil {
+
+			return err
+		}
+
+	} else {
+
+		if err := query.UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess, "password": user.Password}).Error; err != nil {
+
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+/*check new password with old password*/
+/*return false it will not match to old password*/
+/*return true it will match to old password*/
+func (a TeamAuth) CheckPasswordwithOld(password string) (bool, error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	var user TblUser
+
+	err := TM.GetUserDetailsTeam(&user, userid, a.Authority.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	passerr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if passerr == bcrypt.ErrMismatchedHashAndPassword {
+
+		return false, nil
+
+	}
+
+	return true, nil
 }

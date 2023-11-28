@@ -388,3 +388,19 @@ func (As Authstruct) CheckNameInMemberGroup(member *TblMemberGroup, userid int, 
 
 	return nil
 }
+
+// Update Member Lms
+func (as Authstruct) UpdateMemberLms(member *TblMember, DB *gorm.DB) error {
+
+	query := DB.Model(TblMember{}).Where("id=?", member.Id)
+
+	if member.ProfileImage == "" && member.ProfileImagePath == "" {
+
+		query.Omit("profile_image , profile_image_path").UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy})
+
+	} else {
+
+		query.UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath})
+	}
+	return nil
+}
