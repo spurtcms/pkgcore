@@ -563,20 +563,20 @@ func (a MemberAuth) CheckEmailInMember(id int, email string) (TblMember, bool, e
 }
 
 // Check Number is already exits or not
-func (a Memberauth) CheckNumberInMember(id int, number string) error {
+func (a Memberauth) CheckNumberInMember(id int, number string) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return false, checkerr
 	}
 
 	check, err := a.Authority.IsGranted("Member", auth.Create)
 
 	if err != nil {
 
-		return err
+		return false, err
 	}
 
 	if check {
@@ -586,11 +586,11 @@ func (a Memberauth) CheckNumberInMember(id int, number string) error {
 		err := AS.CheckNumberInMember(&member, number, id, a.Authority.DB)
 
 		if err != nil {
-			return err
+			return false, err
 		}
 
 	}
-	return nil
+	return true, nil
 }
 
 // Check Number is already exits or not
@@ -1100,20 +1100,20 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 }
 
 // Check Group Name is already exits or not
-func (a Memberauth) CheckNameInMemberGroup(id int, name string) error {
+func (a Memberauth) CheckNameInMemberGroup(id int, name string) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return false, checkerr
 	}
 
 	check, err := a.Authority.IsGranted("Member Group", auth.Create)
 
 	if err != nil {
 
-		return err
+		return false, err
 	}
 
 	if check {
@@ -1123,11 +1123,11 @@ func (a Memberauth) CheckNameInMemberGroup(id int, name string) error {
 		err := AS.CheckNameInMemberGroup(&member, id, name, a.Authority.DB)
 
 		if err != nil {
-			return err
+			return false, err
 		}
 
 	}
-	return nil
+	return true, nil
 }
 
 // Update Member Lms
