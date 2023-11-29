@@ -262,34 +262,30 @@ func (a Memberauth) ListMembers(offset int, limit int, filter Filter, flag bool)
 
 		var member []TblMember
 
-		// var membergroup []TblMemberGroup
-
 		memberlist, _, _ := AS.MembersList(member, offset, limit, filter, flag, a.Authority.DB)
 
 		_, Total_users, _ := AS.MembersList(member, 0, 0, filter, flag, a.Authority.DB)
 
-		// var members []TblMember
+		var memberlists []TblMember
 
-		// membergrouplist, _ := AS.GetGroupData(membergroup, a.Authority.DB)
+		for _, val := range memberlist {
 
-		// for _, member_object := range memberlist {
+			val.CreatedDate = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
-		// 	member_object.CreatedDate = member_object.CreatedOn.Format("02 Jan 2006 03:04 PM")
+			if !val.ModifiedOn.IsZero() {
 
-		// 	for _, membergrp_object := range membergrouplist {
+				val.ModifiedDate = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
 
-		// 		if member_object.MemberGroupId == membergrp_object.Id {
+			} else {
+				val.ModifiedDate = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
-		// 			member_object.Group = append(member_object.Group, membergrp_object)
+			}
 
-		// 			members = append(members, member_object)
+			memberlists = append(memberlists, val)
 
-		// 		}
+		}
 
-		// 	}
-		// }
-
-		return memberlist, Total_users, nil
+		return memberlists, Total_users, nil
 
 	}
 

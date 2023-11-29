@@ -28,9 +28,12 @@ type TblMember struct {
 	MemberGroupId    int
 	GroupName        string `gorm:"-:migration;<-:false"`
 	Password         string
+	DateString       string    `gorm:"-"`
 	Username         string    `gorm:"DEFAULT:NULL"`
 	Otp              int       `gorm:"DEFAULT:NULL"`
 	OtpExpiry        time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedDate     string    `gorm:"-"`
+
 }
 
 type TblMemberGroup struct {

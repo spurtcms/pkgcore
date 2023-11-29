@@ -1,3 +1,4 @@
+//Teams package will help to crud operation and some functionality added
 package teams
 
 import (
