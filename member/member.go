@@ -1,3 +1,6 @@
+//Package Member helps to create cms admin and website.
+//Authorized user only access the functions 
+//All member package functions are authenticated using [github.com/spurtcms/spurtcms-core/auth] package
 package member
 
 import (
@@ -13,12 +16,12 @@ import (
 	"gorm.io/gorm"
 )
 
-var IST, _ = time.LoadLocation("Asia/Kolkata")
-
+// Memberauth structure functions it will be only for admin based
+// If you want access Memberauth functions 
 type Memberauth struct {
 	Authority *auth.Authorization
 }
-
+//MemberAuth structure functions it will be only for Member user site
 type MemberAuth struct {
 	Auth *auth.Authorization
 }
@@ -34,6 +37,7 @@ type Authstruct struct{}
 
 var AS Authstruct
 
+// MigrateTable creates this package related tables in your database
 func MigrateTables(db *gorm.DB) {
 
 	db.AutoMigrate(&TblMemberGroup{}, &TblMember{})
@@ -52,7 +56,8 @@ func MigrateTables(db *gorm.DB) {
 
 }
 
-/*List member group*/
+//Function ListMemberGroup pass the arguments of limit,offset and filter (eg. keywords)
+// It will return the all membergroup lists 
 func (a Memberauth) ListMemberGroup(offset, limit int, filter Filter) (membergroup []TblMemberGroup, MemberGroupCount int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -138,7 +143,7 @@ func (a Memberauth) CreateMemberGroup(membergrpc MemberGroupCreation) error {
 
 		membergroup.IsActive = 1
 
-		membergroup.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		membergroup.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := AS.MemberGroupCreate(&membergroup, a.Authority.DB)
 
@@ -188,7 +193,7 @@ func (a Memberauth) UpdateMemberGroup(membergrpc MemberGroupCreation, id int) er
 
 		membergroup.ModifiedBy = userid
 
-		membergroup.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		membergroup.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := AS.MemberGroupUpdate(&membergroup, id, a.Authority.DB)
 
@@ -377,7 +382,7 @@ func (a Memberauth) CreateMember(Mc MemberCreation) error {
 
 		member.CreatedBy = userid
 
-		member.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		member.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := AS.MemberCreate(&member, a.Authority.DB)
 
@@ -452,7 +457,7 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 		}
 
-		member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := AS.UpdateMember(&member, a.Authority.DB)
 
@@ -490,7 +495,7 @@ func (a Memberauth) DeleteMember(id int) error {
 
 		var member TblMember
 
-		member.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		member.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		member.DeletedBy = userid
 
@@ -700,7 +705,7 @@ func (a Memberauth) MemberIsActive(memberid int, status int) error {
 
 		memberstatus.ModifiedBy = userid
 
-		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := AS.MemberIsActive(memberstatus, memberid, status, a.Authority.DB)
 
@@ -886,7 +891,7 @@ func (M MemberAuth) UpdateOtp(otp int, memberid int) (bool, error) {
 
 	tblmember.Otp = otp
 
-	tblmember.OtpExpiry, _ = time.Parse("2006-01-02 15:04:05", time.Now().Add(time.Duration(5)*time.Minute).In(IST).Format("2006-01-02 15:04:05"))
+	tblmember.OtpExpiry, _ = time.Parse("2006-01-02 15:04:05", time.Now().Add(time.Duration(5)*time.Minute).UTC().Format("2006-01-02 15:04:05"))
 
 	err := AS.UpdateOTP(&tblmember, otp, memberid, M.Auth.DB)
 
@@ -1033,7 +1038,7 @@ func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) 
 
 	member.Password = Pass
 
-	member.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	member.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	member.CreatedBy = 1
 
@@ -1080,7 +1085,7 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 
 	// member.MemberGroupId = MemC.GroupId
 
-	member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	member.ModifiedBy = 1
 
@@ -1165,7 +1170,7 @@ func (a Memberauth) UpdateMemberLms(Mc MemberCreation, id int) error {
 
 		member.ModifiedBy = userid
 
-		member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		err := AS.UpdateMemberLms(&member, a.Authority.DB)
 

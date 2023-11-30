@@ -1,3 +1,4 @@
+//Package Auth 
 package auth
 
 import (
@@ -12,7 +13,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var IST, _ = time.LoadLocation("Asia/Kolkata")
 
 type Authorization struct {
 	DB     *gorm.DB
@@ -230,7 +230,7 @@ func (a Role) CreateRole(rolec RoleCreation) (TblRole, error) {
 
 		role.Slug = strings.ToLower(role.Name)
 
-		role.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		role.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		role.CreatedBy = userid
 
@@ -274,7 +274,7 @@ func (a Role) UpdateRole(rolec RoleCreation, roleid int) (role TblRole, err erro
 
 		role.Description = rolec.Description
 
-		role.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		role.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		role.ModifiedBy = userid
 
@@ -440,7 +440,7 @@ func (a PermissionAu) CreatePermission(Perm MultiPermissin) error {
 
 			createmod.CreatedBy = userid
 
-			createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			createrolepermission = append(createrolepermission, createmod)
 
@@ -527,7 +527,7 @@ func (a PermissionAu) CreateUpdatePermission(Perm MultiPermissin) error {
 
 			createmod.CreatedBy = userid
 
-			createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+			createmod.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 			createrolepermission = append(createrolepermission, createmod)
 
@@ -588,7 +588,7 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 
 			newmod.IconPath = val.IconPath
 
-			newmod.CreatedDate = val.CreatedOn.In(IST).Format("02 Jan 2006 03:04 PM")
+			newmod.CreatedDate = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
 			for _, val1 := range val.TblModulePermission {
 
@@ -610,7 +610,7 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 
 				modper.TblRolePermission = val1.TblRolePermission
 
-				modper.CreatedDate = val.CreatedOn.In(IST).Format("2006-01-02 15:04:05")
+				modper.CreatedDate = val.CreatedOn.Format("2006-01-02 15:04:05")
 
 				modper.FullAccessPermission = val1.FullAccessPermission
 

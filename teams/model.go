@@ -60,7 +60,9 @@ type TeamCreate struct {
 	ProfileImage     string
 	ProfileImagePath string
 }
-
+// This func will help to create a user in your database
+//
+//
 func (t Team) CreateUser(user *TblUser, DB *gorm.DB) error {
 
 	if err := DB.Create(&user).Error; err != nil {

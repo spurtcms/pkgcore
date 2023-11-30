@@ -1,4 +1,6 @@
-//Teams package will help to crud operation and some functionality added
+// Package Teams will helps to create your cms application admin users
+// Authorized user only access the functions
+// All teams package functions are authenticated using [github.com/spurtcms/spurtcms-core/auth] package
 package teams
 
 import (
@@ -12,16 +14,18 @@ import (
 	"gorm.io/gorm"
 )
 
-var IST, _ = time.LoadLocation("Asia/Kolkata")
-
+// This TeamAuth structure functions will have only for admin based functionality
+// TeamAuth contains database connection string, token and secret key for your token
 type TeamAuth struct {
 	Authority *auth.Authorization
 }
 
+// Team structure pointed to all database related query
 type Team struct{}
 
 var TM Team
 
+// MigrateTables creates this package related tables in your database
 func MigrateTables(db *gorm.DB) {
 
 	db.AutoMigrate(TblUser{})
@@ -35,6 +39,7 @@ func MigrateTables(db *gorm.DB) {
 	db.Exec(`insert into tbl_users('id','role_id','first_name','email','username','password','mobile_no','is_active') values(1,1,'spurtcms','spurtcms@gmail.com','spurtcms','$2a$14$r67QLbDoS0yVUbOwbzHfOOY/8eDnI5ya/Vux5j6A6LN9BCJT37ZpW','9876543210',1)`)
 }
 
+// HashingPassword pass the arguments password it will return the bcrypt hashed password
 func hashingPassword(pass string) string {
 
 	passbyte, err := bcrypt.GenerateFromPassword([]byte(pass), 14)
@@ -48,7 +53,9 @@ func hashingPassword(pass string) string {
 	return string(passbyte)
 }
 
-/*List*/
+// ListUser function returns the userslist,usercount and err.
+// if TeamAuth does not have token or invalid it wil return invalid token error
+// Token user does not have Permission to call this ListUser function it will return not authorized error
 func (a TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUser, totoaluser int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -84,7 +91,9 @@ func (a TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUser
 	return []TblUser{}, 0, errors.New("not authorized")
 }
 
-/*User Creation*/
+// CreateUser create for your admin login.
+// if TeamAuth does not have token or invalid it wil return invalid token error.
+// Token user does not have Permission to call this Createuser function it will return not authorized error.
 func (a TeamAuth) CreateUser(teamcreate TeamCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -140,7 +149,7 @@ func (a TeamAuth) CreateUser(teamcreate TeamCreate) error {
 
 		user.ProfileImagePath = teamcreate.ProfileImagePath
 
-		user.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		user.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		user.CreatedBy = userid
 
@@ -210,7 +219,7 @@ func (a TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 
 		user.MobileNo = teamcreate.MobileNo
 
-		user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		user.ModifiedBy = user_id
 
@@ -271,7 +280,7 @@ func (a TeamAuth) DeleteUser(id int) error {
 
 		var user TblUser
 
-		user.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+		user.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		user.DeletedBy = userid
 
@@ -394,7 +403,7 @@ func (a TeamAuth) ChangeYourPassword(password string) (success bool, err error) 
 
 	tbluser.Password = hash_pass
 
-	tbluser.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	tbluser.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	tbluser.ModifiedBy = 1
 
@@ -431,8 +440,10 @@ func (a TeamAuth) CheckRoleUsed(roleid int) (bool, error) {
 
 }
 
-// myprofile update//
-func (a TeamAuth) UpdateMyUser(teamcreate TeamCreate) error {
+// UpdateMyUser what are you want to update your profile using TeamCreate struct and pass your values.
+// This function want some mandatory fields (eg.firstname,email,username,mobileno..) if this fields are
+// empty it will return error(given values is empty)
+func (a TeamAuth) UpdateMyUser(userupdate TeamCreate) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -441,12 +452,12 @@ func (a TeamAuth) UpdateMyUser(teamcreate TeamCreate) error {
 		return checkerr
 	}
 
-	if teamcreate.FirstName == "" || teamcreate.Email == "" || teamcreate.Username == "" || teamcreate.MobileNo == "" {
+	if userupdate.FirstName == "" || userupdate.Email == "" || userupdate.Username == "" || userupdate.MobileNo == "" {
 
 		return errors.New("given some values is empty")
 	}
 
-	password := teamcreate.Password
+	password := userupdate.Password
 
 	var user TblUser
 
@@ -461,36 +472,43 @@ func (a TeamAuth) UpdateMyUser(teamcreate TeamCreate) error {
 
 	// user.RoleId = teamcreate.RoleId
 
-	user.FirstName = teamcreate.FirstName
+	user.FirstName = userupdate.FirstName
 
-	user.LastName = teamcreate.LastName
+	user.LastName = userupdate.LastName
 
-	user.Email = teamcreate.Email
+	user.Email = userupdate.Email
 
-	user.Username = teamcreate.Username
+	user.Username = userupdate.Username
 
-	user.MobileNo = teamcreate.MobileNo
+	user.MobileNo = userupdate.MobileNo
 
-	user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().In(IST).Format("2006-01-02 15:04:05"))
+	user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 	user.ModifiedBy = userid
 
-	user.IsActive = teamcreate.IsActive
+	user.IsActive = userupdate.IsActive
 
-	user.DataAccess = teamcreate.DataAccess
+	user.DataAccess = userupdate.DataAccess
 
-	user.ProfileImage = teamcreate.ProfileImage
+	user.ProfileImage = userupdate.ProfileImage
 
-	user.ProfileImagePath = teamcreate.ProfileImagePath
+	user.ProfileImagePath = userupdate.ProfileImagePath
 
 	query := a.Authority.DB.Table("tbl_users").Where("id=?", user.Id)
 
-	if user.Password == "" {
+	if userupdate.ProfileImage == "" || user.Password == "" {
 
-		if user.Password == "" {
+		if user.Password == "" && userupdate.ProfileImage == "" {
 
-			query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
+			query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
 
+		} else if userupdate.ProfileImage == "" {
+
+			query = query.Omit("profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess, "password": user.Password})
+
+		} else if user.Password == "" {
+
+			query = query.Omit("password").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess})
 		}
 
 		if err := query.Error; err != nil {
@@ -500,7 +518,7 @@ func (a TeamAuth) UpdateMyUser(teamcreate TeamCreate) error {
 
 	} else {
 
-		if err := query.UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess, "password": user.Password}).Error; err != nil {
+		if err := query.UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess, "password": user.Password}).Error; err != nil {
 
 			return err
 		}
