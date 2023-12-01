@@ -233,12 +233,19 @@ func (a TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 
 		query := a.Authority.DB.Table("tbl_users").Where("id=?", user.Id)
 
-		if user.Password == "" {
+		if user.ProfileImage == "" || user.Password == "" {
 
-			if user.Password == "" {
+			if user.Password == "" && user.ProfileImage == "" {
 
 				query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
 
+			} else if user.ProfileImage == "" {
+
+				query = query.Omit("profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess, "password": user.Password})
+
+			} else if user.Password == "" {
+
+				query = query.Omit("password").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess})
 			}
 
 			if err := query.Error; err != nil {
@@ -252,11 +259,10 @@ func (a TeamAuth) UpdateUser(teamcreate TeamCreate, userid int) error {
 
 				return err
 			}
-
 		}
-
 	}
 	return nil
+
 }
 
 // Delete User
@@ -470,7 +476,7 @@ func (a TeamAuth) UpdateMyUser(userupdate TeamCreate) error {
 
 	user.Id = userid
 
-	// user.RoleId = teamcreate.RoleId
+	// user.RoleId = userupdate.RoleId
 
 	user.FirstName = userupdate.FirstName
 
@@ -500,15 +506,15 @@ func (a TeamAuth) UpdateMyUser(userupdate TeamCreate) error {
 
 		if user.Password == "" && userupdate.ProfileImage == "" {
 
-			query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
+			query = query.Omit("password", "profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
 
 		} else if userupdate.ProfileImage == "" {
 
-			query = query.Omit("profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess, "password": user.Password})
+			query = query.Omit("profile_image", "profile_image_path").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess, "password": user.Password})
 
 		} else if user.Password == "" {
 
-			query = query.Omit("password").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess})
+			query = query.Omit("password").UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess})
 		}
 
 		if err := query.Error; err != nil {
@@ -518,7 +524,7 @@ func (a TeamAuth) UpdateMyUser(userupdate TeamCreate) error {
 
 	} else {
 
-		if err := query.UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "role_id": user.RoleId, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess, "password": user.Password}).Error; err != nil {
+		if err := query.UpdateColumns(map[string]interface{}{"first_name": user.FirstName, "last_name": user.LastName, "email": user.Email, "username": user.Username, "mobile_no": user.MobileNo, "is_active": user.IsActive, "modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "profile_image": user.ProfileImage, "profile_image_path": user.ProfileImagePath, "data_access": user.DataAccess, "password": user.Password}).Error; err != nil {
 
 			return err
 		}
@@ -529,8 +535,8 @@ func (a TeamAuth) UpdateMyUser(userupdate TeamCreate) error {
 }
 
 /*check new password with old password*/
-/*return false it will not match to old password*/
-/*return true it will match to old password*/
+/*if it's return false it does not match to the old password*/
+/*or return true it does match to the old password*/
 func (a TeamAuth) CheckPasswordwithOld(password string) (bool, error) {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
