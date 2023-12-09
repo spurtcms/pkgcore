@@ -1,6 +1,6 @@
-//Package Member helps to create cms admin and website.
-//Authorized user only access the functions 
-//All member package functions are authenticated using [github.com/spurtcms/spurtcms-core/auth] package
+// Package Member helps to create cms admin and website.
+// Authorized user only access the functions
+// All member package functions are authenticated using [github.com/spurtcms/spurtcms-core/auth] package
 package member
 
 import (
@@ -17,11 +17,12 @@ import (
 )
 
 // Memberauth structure functions it will be only for admin based
-// If you want access Memberauth functions 
+// If you want access Memberauth functions
 type Memberauth struct {
 	Authority *auth.Authorization
 }
-//MemberAuth structure functions it will be only for Member user site
+
+// MemberAuth structure functions it will be only for Member user site
 type MemberAuth struct {
 	Auth *auth.Authorization
 }
@@ -56,8 +57,8 @@ func MigrateTables(db *gorm.DB) {
 
 }
 
-//Function ListMemberGroup pass the arguments of limit,offset and filter (eg. keywords)
-// It will return the all membergroup lists 
+// Function ListMemberGroup pass the arguments of limit,offset and filter (eg. keywords)
+// It will return the all membergroup lists
 func (a Memberauth) ListMemberGroup(offset, limit int, filter Filter) (membergroup []TblMemberGroup, MemberGroupCount int64, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -78,11 +79,60 @@ func (a Memberauth) ListMemberGroup(offset, limit int, filter Filter) (membergro
 
 		var membergrplist []TblMemberGroup
 
-		AS.MemberGroupList(membergrplist, limit, offset, filter, a.Authority.DB)
+		AS.MemberGroupList(membergrplist, limit, offset, filter, false, a.Authority.DB)
 
-		_, membercounts, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, a.Authority.DB)
+		_, membercounts, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, false, a.Authority.DB)
 
-		membergrouplist, _, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, a.Authority.DB)
+		membergrouplist, _, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, false, a.Authority.DB)
+
+		var membergrouplists []TblMemberGroup
+
+		for _, val := range membergrouplist {
+
+			if !val.ModifiedOn.IsZero() {
+
+				val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+			} else {
+				val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+			}
+
+			membergrouplists = append(membergrouplists, val)
+
+		}
+
+		return membergrouplists, membercounts, nil
+	}
+	return []TblMemberGroup{}, 0, errors.New("not authorized")
+
+}
+
+func (a Memberauth) ListActiveMemberGroup(offset, limit int, filter Filter) (membergroup []TblMemberGroup, MemberGroupCount int64, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblMemberGroup{}, 0, checkerr
+	}
+
+	check, _ := a.Authority.IsGranted("Member Group", auth.Read)
+
+	if check {
+
+		if err != nil {
+
+			return []TblMemberGroup{}, 0, err
+		}
+
+		var membergrplist []TblMemberGroup
+
+		AS.MemberGroupList(membergrplist, limit, offset, filter, true, a.Authority.DB)
+
+		_, membercounts, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, true, a.Authority.DB)
+
+		membergrouplist, _, _ := AS.MemberGroupList(membergrplist, limit, offset, filter, true, a.Authority.DB)
 
 		var membergrouplists []TblMemberGroup
 

@@ -61,21 +61,21 @@ type Filter struct {
 }
 
 type SubPage struct {
-	Id       string
-	GroupId  string
-	ParentId string
-	SpaceId  string
+	Id       string `json:"id"`
+	GroupId  string `json:"groupId"`
+	ParentId string `json:"parentId"`
+	SpaceId  string `json:"spaceId"`
 }
 
 type Page struct {
-	Id      string
-	GroupId string
-	SpaceId string
+	Id      string `json:"id"`
+	GroupId string `json:"groupId"`
+	SpaceId string `json:"spaceId"`
 }
 
 type PageGroup struct {
-	Id      string
-	SpaceId string
+	Id      string `json:"id"`
+	SpaceId string `json:"spaceId"`
 }
 
 type MemberAccessControlRequired struct {

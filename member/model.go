@@ -33,7 +33,6 @@ type TblMember struct {
 	Otp              int       `gorm:"DEFAULT:NULL"`
 	OtpExpiry        time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedDate     string    `gorm:"-"`
-
 }
 
 type TblMemberGroup struct {
@@ -83,13 +82,19 @@ type Filter struct {
 
 // Member Group List
 
-func (as Authstruct) MemberGroupList(membergroup []TblMemberGroup, limit int, offset int, filter Filter, DB *gorm.DB) (membergroupl []TblMemberGroup, TotalMemberGroup int64, err error) {
+func (as Authstruct) MemberGroupList(membergroup []TblMemberGroup, limit int, offset int, filter Filter, getactive bool, DB *gorm.DB) (membergroupl []TblMemberGroup, TotalMemberGroup int64, err error) {
 
 	query := DB.Model(TblMemberGroup{}).Where("is_deleted = 0").Order("id desc")
 
 	if filter.Keyword != "" {
 
 		query = query.Where("LOWER(TRIM(name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+
+	}
+
+	if getactive {
+
+		query = query.Where("is_active=1")
 
 	}
 
