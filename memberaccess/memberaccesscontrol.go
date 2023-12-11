@@ -253,20 +253,20 @@ func (access AccessAdminAuth) ContentAccessList(limit int, offset int, filter Fi
 }
 
 /*Get Access by id*/
-func (access AccessAdminAuth) GetControlAccessById(accessid int) (accesslist TblAccessControl, pg []Page, spage []SubPage, pgroup []PageGroup, MembergroupIds []int, err error) {
+func (access AccessAdminAuth) GetControlAccessById(accessid int) (accesslist TblAccessControl, pg []Page, spage []SubPage, pgroup []PageGroup, selectedspacesid []int, MembergroupIds []int, err error) {
 
 	_, _, checkerr := auth.VerifyToken(access.Authority.Token, access.Authority.Secret)
 
 	if checkerr != nil {
 
-		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, checkerr
+		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, checkerr
 	}
 
 	check, err := access.Authority.IsGranted("contentaccesscontrol", auth.CRUD)
 
 	if err != nil {
 
-		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, err
+		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, err
 	}
 
 	if check {
@@ -427,19 +427,34 @@ func (access AccessAdminAuth) GetControlAccessById(accessid int) (accesslist Tbl
 
 		AT.GetAccessGrantedMemberGroupsList(&accessGrantedMemgrps, accessid, access.Authority.DB)
 
-		// for _, memgrpid := range accessGrantedMemgrps {
+		var spaceIds []int
 
-		// 	memid := strconv.Itoa(memgrpid)
+		AT.GetContentAccessSpaces(&spaceIds, accessid, access.Authority.DB)
 
-		// 	access_grant_memgrps_list = append(access_grant_memgrps_list, memid)
+		var accessSpaceIds []int
 
-		// }
+		for _, spaceId := range spaceIds {
 
-		return AccessControl, pages, subpages, pagegroups, accessGrantedMemgrps, nil
+			var contentAccessPages []int
+
+			AT.GetcontentAccessPagesBySpaceId(&contentAccessPages, spaceId, accessid, access.Authority.DB)
+
+			var tblPageData []TblPage
+
+			AT.GetPagesUnderSpaces(&tblPageData, spaceId, access.Authority.DB)
+
+			if len(tblPageData) == len(contentAccessPages) {
+
+				accessSpaceIds = append(accessSpaceIds, spaceId)
+			}
+
+		}
+
+		return AccessControl, pages, subpages, pagegroups, accessGrantedMemgrps, accessSpaceIds, nil
 
 	}
 
-	return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, errors.New("not authorized")
+	return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, errors.New("not authorized")
 }
 
 /*Create Access control*/

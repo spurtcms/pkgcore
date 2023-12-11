@@ -433,3 +433,28 @@ func (at AccessType) GetPagesUnderPageGroup(pagesinPgg *[]TblPage, PageGroupId i
 	return nil
 
 }
+
+func (at AccessType) GetContentAccessSpaces(spaceIds *[]int, accessId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Select("distinct(tbl_access_control_pages.spaces_id)").
+		Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
+		Joins("inner join tbl_access_control on tbl_access_control.id = tbl_access_control_user_group.access_control_id").
+		Where("tbl_access_control.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0 and tbl_access_control_user_group.is_deleted = 0 and tbl_access_control.id = ?", accessId).Find(&spaceIds).Error; err != nil {
+
+		return err
+	}
+	return nil
+}
+
+func (at AccessType) GetcontentAccessPagesBySpaceId(ContentAccessPages *[]int, spid, accessid int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Select("distinct(tbl_access_control_pages.page_id)").
+		Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
+		Joins("inner join tbl_access_control on tbl_access_control.id = tbl_access_control_user_group.access_control_id").
+		Where("tbl_access_control_pages.is_deleted = 0 and tbl_access_control_pages.spaces_id = ? and tbl_access_control.id = ?", spid, accessid).Find(&ContentAccessPages).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
