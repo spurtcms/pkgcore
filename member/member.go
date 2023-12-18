@@ -1051,19 +1051,19 @@ func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
 // register member
 func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) {
 
-	if MemC.FirstName != "" {
+	if MemC.FirstName == "" {
 
 		return false, errors.New("firstname is empty can't register")
 
-	} else if MemC.Email != "" {
+	} else if MemC.Email == "" {
 
 		return false, errors.New("email is empty can't register")
 
-	} else if MemC.MobileNo != "" {
+	} else if MemC.MobileNo == "" {
 
 		return false, errors.New("mobile number is empty can't register")
 
-	} else if MemC.Password != "" {
+	} else if MemC.Password == "" {
 
 		return false, errors.New("password is empty can't register")
 	}
