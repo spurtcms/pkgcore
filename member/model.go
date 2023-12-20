@@ -33,6 +33,7 @@ type TblMember struct {
 	Otp              int       `gorm:"DEFAULT:NULL"`
 	OtpExpiry        time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedDate     string    `gorm:"-"`
+	NameString       string    `gorm:"-"`
 }
 
 type TblMemberGroup struct {

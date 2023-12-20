@@ -325,6 +325,18 @@ func (a Memberauth) ListMembers(offset int, limit int, filter Filter, flag bool)
 
 		for _, val := range memberlist {
 
+			var first = val.FirstName
+
+			var last = val.LastName
+
+			var firstn = first[:1]
+
+			var lastn = last[:1]
+
+			var Name = firstn + lastn
+
+			val.NameString = Name
+
 			val.CreatedDate = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
 			if !val.ModifiedOn.IsZero() {

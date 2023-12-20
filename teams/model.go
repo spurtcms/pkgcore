@@ -60,9 +60,8 @@ type TeamCreate struct {
 	ProfileImage     string
 	ProfileImagePath string
 }
+
 // This func will help to create a user in your database
-//
-//
 func (t Team) CreateUser(user *TblUser, DB *gorm.DB) error {
 
 	if err := DB.Create(&user).Error; err != nil {
@@ -192,6 +191,23 @@ func (t Team) CheckNumber(user *TblUser, mobile string, userid int, DB *gorm.DB)
 		}
 	} else {
 		if err := DB.Table("tbl_users").Where("mobile_no = ? and id not in (?) and is_deleted=0", mobile, userid).First(&user).Error; err != nil {
+
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (t Team) CheckValidation(user *TblUser, email, username, mobile string, userid int, DB *gorm.DB) error {
+	if userid == 0 {
+		if err := DB.Table("tbl_users").Where("mobile_no = ? or LOWER(TRIM(email))=LOWER(TRIM(?)) or username = ?   and is_deleted=0", mobile, email, username).First(&user).Error; err != nil {
+
+			return err
+		}
+	} else {
+		if err := DB.Table("tbl_users").Where("mobile_no = ? or LOWER(TRIM(email))=LOWER(TRIM(?)) or username = ? and id not in (?) and is_deleted=0", mobile, email, username, userid).First(&user).Error; err != nil {
 
 			return err
 		}

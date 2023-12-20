@@ -353,6 +353,28 @@ func (a TeamAuth) CheckNumber(mobile string, userid int) (bool, error) {
 	return true, nil
 }
 
+// Check all username,email,number
+func (a TeamAuth) CheckUserValidation(mobile string, email string, username string, userid int) (emaill bool, users bool, mobiles bool, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, false, false, checkerr
+	}
+
+	var user TblUser
+
+	err1 := TM.CheckValidation(&user, email, username, mobile, userid, a.Authority.DB)
+
+	if err1 != nil {
+
+		return false, false, false, err1
+	}
+
+	return true, true, true, nil
+}
+
 // check username
 func (a TeamAuth) CheckUsername(username string, userid int) (bool, error) {
 
