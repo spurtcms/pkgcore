@@ -1,4 +1,4 @@
-//Package Auth 
+//Package Auth
 package auth
 
 import (
@@ -666,8 +666,6 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 					if sub.Id == val.Id {
 
 						for _, getmod := range sub.TblModulePermission {
-
-							log.Println(getmod.ParentId, val.Id, getmod)
 
 							if getmod.ModuleId == val.Id {
 

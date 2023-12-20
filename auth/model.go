@@ -294,7 +294,7 @@ func (as Authstruct) GetAllParentModules1(mod *[]TblModule, DB *gorm.DB) (err er
 /**/
 func (as Authstruct) GetAllSubModules(mod *[]TblModule, ids []int, DB *gorm.DB) (err error) {
 
-	if err := DB.Model(TblModule{}).Where("tbl_modules.parent_id in (?) and tbl_modules.assign_permission=1", ids).Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
+	if err := DB.Model(TblModule{}).Where("(tbl_modules.parent_id in (?) or id in(?)) and tbl_modules.assign_permission=1", ids,ids).Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
 		return db.Where("assign_permission =0")
 	}).Find(&mod).Error; err != nil {
 
