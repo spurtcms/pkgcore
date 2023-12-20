@@ -570,54 +570,198 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 
 		var allmodules []TblModule
 
-		AS.GetAllModules(&allmodule, limit, offset, roleid, filter, a.Auth.DB)
+		var parentid []int //all parentid
+
+		AS.GetAllParentModules1(&allmodule, a.Auth.DB)
 
 		for _, val := range allmodule {
 
-			var newmod TblModule
+			parentid = append(parentid, val.Id)
+		}
 
-			newmod.Id = val.Id
+		var submod []TblModule
 
-			newmod.Description = val.Description
+		AS.GetAllSubModules(&submod, parentid, a.Auth.DB)
 
-			newmod.CreatedBy = val.CreatedBy
+		for _, val := range allmodule {
 
-			newmod.ModuleName = val.ModuleName
+			if val.ModuleName == "Settings" {
 
-			newmod.IsActive = val.IsActive
+				var newmod TblModule
 
-			newmod.IconPath = val.IconPath
+				newmod.Id = val.Id
 
-			newmod.CreatedDate = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+				newmod.Description = val.Description
 
-			for _, val1 := range val.TblModulePermission {
+				newmod.CreatedBy = val.CreatedBy
 
-				var modper TblModulePermission
+				newmod.ModuleName = val.ModuleName
 
-				modper.Id = val1.Id
+				newmod.IsActive = val.IsActive
 
-				modper.Description = val1.Description
+				newmod.IconPath = val.IconPath
 
-				modper.DisplayName = val1.DisplayName
+				newmod.CreatedDate = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
-				modper.ModuleName = val1.ModuleName
+				for _, sub := range submod {
 
-				modper.RouteName = val1.RouteName
+					if sub.ParentId == val.Id {
 
-				modper.CreatedBy = val1.CreatedBy
+						for _, getmod := range sub.TblModulePermission {
 
-				modper.Description = val1.Description
+							if getmod.ModuleId == sub.Id {
 
-				modper.TblRolePermission = val1.TblRolePermission
+								var modper TblModulePermission
 
-				modper.CreatedDate = val.CreatedOn.Format("2006-01-02 15:04:05")
+								modper.Id = getmod.Id
 
-				modper.FullAccessPermission = val1.FullAccessPermission
+								modper.Description = getmod.Description
 
-				newmod.TblModulePermission = append(newmod.TblModulePermission, modper)
+								modper.DisplayName = getmod.DisplayName
+
+								modper.ModuleName = getmod.ModuleName
+
+								modper.RouteName = getmod.RouteName
+
+								modper.CreatedBy = getmod.CreatedBy
+
+								modper.Description = getmod.Description
+
+								modper.TblRolePermission = getmod.TblRolePermission
+
+								modper.CreatedDate = val.CreatedOn.Format("2006-01-02 15:04:05")
+
+								modper.FullAccessPermission = getmod.FullAccessPermission
+
+								newmod.TblModulePermission = append(newmod.TblModulePermission, modper)
+							}
+
+						}
+					}
+
+				}
+
+				allmodules = append(allmodules, newmod)
+
+			} else if val.ModuleName == "LMS" {
+
+				var newmod TblModule
+
+				newmod.Id = val.Id
+
+				newmod.Description = val.Description
+
+				newmod.CreatedBy = val.CreatedBy
+
+				newmod.ModuleName = val.ModuleName
+
+				newmod.IsActive = val.IsActive
+
+				newmod.IconPath = val.IconPath
+
+				newmod.CreatedDate = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+				for _, sub := range submod {
+
+					if sub.Id == val.Id {
+
+						for _, getmod := range sub.TblModulePermission {
+
+							log.Println(getmod.ParentId, val.Id, getmod)
+
+							if getmod.ModuleId == val.Id {
+
+								var modper TblModulePermission
+
+								modper.Id = getmod.Id
+
+								modper.Description = getmod.Description
+
+								modper.DisplayName = getmod.DisplayName
+
+								modper.ModuleName = getmod.ModuleName
+
+								modper.RouteName = getmod.RouteName
+
+								modper.CreatedBy = getmod.CreatedBy
+
+								modper.Description = getmod.Description
+
+								modper.TblRolePermission = getmod.TblRolePermission
+
+								modper.CreatedDate = val.CreatedOn.Format("2006-01-02 15:04:05")
+
+								modper.FullAccessPermission = getmod.FullAccessPermission
+
+								newmod.TblModulePermission = append(newmod.TblModulePermission, modper)
+							}
+
+						}
+					}
+
+				}
+
+				allmodules = append(allmodules, newmod)
+
+			} else {
+
+				for _, sub := range submod {
+
+					if sub.ParentId == val.Id {
+
+						var newmod TblModule
+
+						newmod.Id = sub.Id
+
+						newmod.Description = sub.Description
+
+						newmod.CreatedBy = sub.CreatedBy
+
+						newmod.ModuleName = sub.ModuleName
+
+						newmod.IsActive = sub.IsActive
+
+						newmod.IconPath = sub.IconPath
+
+						newmod.CreatedDate = sub.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+						for _, getmod := range sub.TblModulePermission {
+
+							if getmod.ModuleId == sub.Id {
+
+								var modper TblModulePermission
+
+								modper.Id = getmod.Id
+
+								modper.Description = sub.Description
+
+								modper.DisplayName = getmod.DisplayName
+
+								modper.ModuleName = getmod.ModuleName
+
+								modper.RouteName = getmod.RouteName
+
+								modper.CreatedBy = getmod.CreatedBy
+
+								modper.Description = getmod.Description
+
+								modper.TblRolePermission = getmod.TblRolePermission
+
+								modper.CreatedDate = val.CreatedOn.Format("2006-01-02 15:04:05")
+
+								modper.FullAccessPermission = getmod.FullAccessPermission
+
+								newmod.TblModulePermission = append(newmod.TblModulePermission, modper)
+							}
+
+						}
+
+						allmodules = append(allmodules, newmod)
+
+					}
+				}
+
 			}
-
-			allmodules = append(allmodules, newmod)
 
 		}
 
