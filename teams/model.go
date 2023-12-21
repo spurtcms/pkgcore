@@ -37,6 +37,7 @@ type TblUser struct {
 	FullAccessPermission int       `gorm:"-:migration;<-:false"`
 	RoleName             string    `gorm:"-:migration;<-:false"`
 	DefaultLanguageId    int
+	NameString           string `gorm:"-"`
 }
 
 type Filters struct {

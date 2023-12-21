@@ -6,6 +6,7 @@ package teams
 import (
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -80,11 +81,36 @@ func (a TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUser
 
 		UserList, _ := TM.GetUsersList(&users, offset, limit, filter, flg, a.Authority.DB)
 
+		var userlists []TblUser
+
 		var userscoount []TblUser
+
+		for _, val := range UserList {
+
+			var first = val.FirstName
+
+			var last = val.LastName
+
+			var firstn = strings.ToUpper(first[:1])
+
+			var lastn string
+
+			if val.LastName != "" {
+
+				lastn = strings.ToUpper(last[:1])
+			}
+			
+			var Name = firstn + lastn
+
+			val.NameString = Name
+
+			userlists = append(userlists, val)
+
+		}
 
 		_, usercount := TM.GetUsersList(&userscoount, 0, 0, filter, flg, a.Authority.DB)
 
-		return UserList, usercount, nil
+		return userlists, usercount, nil
 
 	}
 

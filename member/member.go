@@ -329,10 +329,14 @@ func (a Memberauth) ListMembers(offset int, limit int, filter Filter, flag bool)
 
 			var last = val.LastName
 
-			var firstn = first[:1]
+			var firstn = strings.ToUpper(first[:1])
 
-			var lastn = last[:1]
+			var lastn string
 
+			if val.LastName != "" {
+
+				lastn = strings.ToUpper(last[:1])
+			}
 			var Name = firstn + lastn
 
 			val.NameString = Name
