@@ -382,13 +382,13 @@ func (As Authstruct) CheckNameInMemberGroup(member *TblMemberGroup, userid int, 
 
 	if userid == 0 {
 
-		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", name).First(&member).Error; err != nil {
+		if err := DB.Model(TblMemberGroup{}).Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and is_deleted=0", name).First(&member).Error; err != nil {
 
 			return err
 		}
 	} else {
 
-		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&member).Error; err != nil {
+		if err := DB.Model(TblMemberGroup{}).Where("LOWER(TRIM(name))=LOWER(TRIM(?)) and id not in (?) and is_deleted=0", name, userid).First(&member).Error; err != nil {
 
 			return err
 		}

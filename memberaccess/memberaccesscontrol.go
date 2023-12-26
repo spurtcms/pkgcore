@@ -194,7 +194,7 @@ func (access AccessAdminAuth) ContentAccessList(limit int, offset int, filter Fi
 		return []TblAccessControl{}, 0, checkerr
 	}
 
-	check, err := access.Authority.IsGranted("contentaccesscontrol", auth.CRUD)
+	check, err := access.Authority.IsGranted("Member-Restrict", auth.CRUD)
 
 	if err != nil {
 
@@ -262,7 +262,7 @@ func (access AccessAdminAuth) GetControlAccessById(accessid int) (accesslist Tbl
 		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, checkerr
 	}
 
-	check, err := access.Authority.IsGranted("contentaccesscontrol", auth.CRUD)
+	check, err := access.Authority.IsGranted("Member-Restrict", auth.CRUD)
 
 	if err != nil {
 
@@ -467,7 +467,7 @@ func (access AccessAdminAuth) CreateMemberAccessControl(control MemberAccessCont
 		return false, checkerr
 	}
 
-	check, err := access.Authority.IsGranted("contentaccesscontrol", auth.CRUD)
+	check, err := access.Authority.IsGranted("Member-Restrict", auth.CRUD)
 
 	if err != nil {
 
@@ -698,7 +698,7 @@ func (access AccessAdminAuth) UpdateMemberAccessControl(control MemberAccessCont
 		return false, checkerr
 	}
 
-	check, err := access.Authority.IsGranted("contentaccesscontrol", auth.CRUD)
+	check, err := access.Authority.IsGranted("Member-Restrict", auth.CRUD)
 
 	if err != nil {
 
@@ -1106,7 +1106,7 @@ func (access AccessAdminAuth) DeleteMemberAccessControl(accesscontrolid int) (bo
 		return false, checkerr
 	}
 
-	check, err := access.Authority.IsGranted("contentaccesscontrol", auth.CRUD)
+	check, err := access.Authority.IsGranted("Member-Restrict", auth.CRUD)
 
 	if err != nil {
 

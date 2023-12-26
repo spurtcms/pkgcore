@@ -144,7 +144,7 @@ type LoginCheck struct {
 /*get all roles*/
 func (as Authstruct) GetAllRoles(role *[]TblRole, limit, offset int, filter Filter, DB *gorm.DB) (rolecount int64, err error) {
 
-	query := DB.Table("tbl_roles").Where("is_deleted = 0").Order("id desc")
+	query := DB.Table("tbl_roles").Where("is_deleted = 0 and slug!='admin'").Order("id desc")
 
 	if filter.Keyword != "" {
 
@@ -294,8 +294,8 @@ func (as Authstruct) GetAllParentModules1(mod *[]TblModule, DB *gorm.DB) (err er
 /**/
 func (as Authstruct) GetAllSubModules(mod *[]TblModule, ids []int, DB *gorm.DB) (err error) {
 
-	if err := DB.Model(TblModule{}).Where("(tbl_modules.parent_id in (?) or id in(?)) and tbl_modules.assign_permission=1", ids,ids).Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
-		return db.Where("assign_permission =0")
+	if err := DB.Model(TblModule{}).Where("(tbl_modules.parent_id in (?) or id in(?)) and tbl_modules.assign_permission=1", ids, ids).Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
+		return db.Where("assign_permission =0").Order("display_name")
 	}).Find(&mod).Error; err != nil {
 
 		return err
