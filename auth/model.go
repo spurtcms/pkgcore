@@ -18,6 +18,7 @@ type TblModule struct {
 	IconPath            string
 	TblModulePermission []TblModulePermission `gorm:"-:migration;<-:false; foreignKey:ModuleId"`
 	Description         string
+	OrderIndex          int
 }
 
 type TblModulePermission struct {
