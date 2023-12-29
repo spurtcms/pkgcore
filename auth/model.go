@@ -38,6 +38,7 @@ type TblModulePermission struct {
 	AssignPermission     int
 	BreadcrumbName       string
 	TblRolePermission    []TblRolePermission `gorm:"-:migration;<-:false; foreignKey:PermissionId"`
+	OrderIndex           int
 }
 
 type TblRolePermission struct {
@@ -295,8 +296,8 @@ func (as Authstruct) GetAllParentModules1(mod *[]TblModule, DB *gorm.DB) (err er
 /**/
 func (as Authstruct) GetAllSubModules(mod *[]TblModule, ids []int, DB *gorm.DB) (err error) {
 
-	if err := DB.Model(TblModule{}).Where("(tbl_modules.parent_id in (?) or id in(?)) and tbl_modules.assign_permission=1", ids, ids).Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
-		return db.Where("assign_permission =0").Order("display_name")
+	if err := DB.Model(TblModule{}).Where("(tbl_modules.parent_id in (?) or id in(?)) and tbl_modules.assign_permission=1", ids, ids).Order("order_index").Preload("TblModulePermission", func(db *gorm.DB) *gorm.DB {
+		return db.Where("assign_permission =0").Order("order_index asc")
 	}).Find(&mod).Error; err != nil {
 
 		return err
