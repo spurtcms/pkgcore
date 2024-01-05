@@ -145,7 +145,7 @@ func (at AccessType) GetContentAccessList(contentAccessList *[]TblAccessControl,
 
 	query := DB.Table("tbl_access_control").Select("tbl_access_control.*,tbl_users.username,tbl_roles.name").Joins("left join tbl_users on tbl_users.id = tbl_access_control.created_by").
 		Joins("left join tbl_roles on tbl_roles.id = tbl_users.role_id").
-		Where("tbl_access_control.is_deleted = 0 AND tbl_users.is_deleted = 0 AND tbl_roles.is_deleted = 0").Order("tbl_access_control.id DESC")
+		Where("tbl_access_control.is_deleted = 0").Order("tbl_access_control.id DESC")
 
 	if filter.Keyword != "" {
 
