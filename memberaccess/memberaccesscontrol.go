@@ -601,6 +601,34 @@ func (access AccessAdminAuth) CreateMemberAccessControl(control MemberAccessCont
 
 			}
 
+			for _,entry := range control.ChannelEntries{
+
+				chanId,_ := strconv.Atoi(entry.ChannelId)
+				
+				entryId ,_ := strconv.Atoi(entry.Id)
+
+				var channelAccess TblAccessControlPages
+
+				channelAccess.AccessControlUserGroupId = memgrp.Id
+
+				channelAccess.ChannelId = chanId
+
+				channelAccess.EntryId = entryId
+
+				channelAccess.CreatedBy = userid
+
+				channelAccess.CreatedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
+
+				channelAccess.IsDeleted = 0
+
+				err = AT.InsertPageEntries(&channelAccess,access.Authority.DB)
+
+				if err!=nil{
+				
+					log.Println(err)
+				}
+			}
+
 		}
 
 		var tblPagesData [][]TblPage

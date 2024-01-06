@@ -38,6 +38,8 @@ type TblAccessControlPages struct {
 	DeletedOn                time.Time `gorm:"DEFAULT:NULL"`
 	DeletedBy                int       `gorm:"DEFAULT:NULL"`
 	ParentPageId             int       `gorm:"column:parent_id;<-:false"`
+	ChannelId                int
+	EntryId                  int
 }
 
 type TblAccessControlUserGroup struct {
@@ -78,15 +80,21 @@ type PageGroup struct {
 	SpaceId string `json:"spaceId"`
 }
 
+type Entry struct {
+	Id        string `json:"id"`
+	ChannelId string `json:"channelId"`
+}
+
 type MemberAccessControlRequired struct {
 	Title          string
 	Pages          []Page
 	SubPage        []SubPage
 	Group          []PageGroup
 	SpacesIds      []int
+	Channels       []int
+	ChannelEntries []Entry
 	MemberGroupIds []int
 }
-
 type TblPage struct {
 	Id          int `gorm:"primaryKey;auto_increment"`
 	SpacesId    int
