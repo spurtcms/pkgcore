@@ -8,20 +8,21 @@ import (
 )
 
 type TblAccessControl struct {
-	Id                int `gorm:"primaryKey;auto_increment"`
-	AccessControlName string
-	AccessControlSlug string
-	CreatedOn         time.Time
-	CreatedBy         int
-	ModifiedOn        time.Time `gorm:"DEFAULT:NULL"`
-	ModifiedBy        int       `gorm:"DEFAULT:NULL"`
-	IsDeleted         int
-	DeletedOn         time.Time               `gorm:"DEFAULT:NULL"`
-	DeletedBy         int                     `gorm:"DEFAULT:NULL"`
-	Username          string                  `gorm:"column:username;<-:false"`
-	Rolename          string                  `gorm:"column:name;<-:false"`
-	MemberGroups      []member.TblMemberGroup `gorm:"-"`
-	DateString        string                  `gorm:"-"`
+	Id                   int `gorm:"primaryKey;auto_increment"`
+	AccessControlName    string
+	AccessControlSlug    string
+	CreatedOn            time.Time
+	CreatedBy            int
+	ModifiedOn           time.Time `gorm:"DEFAULT:NULL"`
+	ModifiedBy           int       `gorm:"DEFAULT:NULL"`
+	IsDeleted            int
+	DeletedOn            time.Time               `gorm:"DEFAULT:NULL"`
+	DeletedBy            int                     `gorm:"DEFAULT:NULL"`
+	Username             string                  `gorm:"column:username;<-:false"`
+	Rolename             string                  `gorm:"column:name;<-:false"`
+	MemberGroups         []member.TblMemberGroup `gorm:"-"`
+	DateString           string                  `gorm:"-"`
+	AccessGrantedModules []string                `gorm:"-"`
 }
 
 type TblAccessControlPages struct {
@@ -460,6 +461,53 @@ func (at AccessType) GetcontentAccessPagesBySpaceId(ContentAccessPages *[]int, s
 		Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
 		Joins("inner join tbl_access_control on tbl_access_control.id = tbl_access_control_user_group.access_control_id").
 		Where("tbl_access_control_pages.is_deleted = 0 and tbl_access_control_pages.spaces_id = ? and tbl_access_control.id = ?", spid, accessid).Find(&ContentAccessPages).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) GetaccessGrantedPageCount(count *int64, accessId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control").Distinct("tbl_access_control_pages.page_id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.access_control_id = tbl_access_control.id").
+		Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id = tbl_access_control_user_group.id").
+		Where("tbl_access_control.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0 and tbl_access_control.id = ? and tbl_access_control_pages.page_id!= 0", accessId).Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) GetaccessGrantedEntriesCount(count *int64, accessId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control").Distinct("tbl_access_control_pages.entry_id").Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.access_control_id = tbl_access_control.id").
+		Joins("inner join tbl_access_control_pages on tbl_access_control_pages.access_control_user_group_id = tbl_access_control_user_group.id").
+		Where("tbl_access_control.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0 and tbl_access_control.id = ? and tbl_access_control_pages.entry_id!= 0", accessId).Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) GetAccessGrantedEntries(AccessEntries *[]TblAccessControlPages, accessId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Select("distinct on (tbl_access_control_pages.entry_id) tbl_access_control_pages.*").
+		Joins("inner join tbl_access_control_user_group on tbl_access_control_user_group.id = tbl_access_control_pages.access_control_user_group_id").
+		Joins("inner join tbl_access_control on tbl_access_control.id = tbl_access_control_user_group.access_control_id").
+		Where("tbl_access_control.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0 and tbl_access_control.id = ? and tbl_access_control_pages.entry_id!= 0", accessId).Find(&AccessEntries).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) GetEntriesCountUnderChannel(count *int64, channelId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entries").Where("is_deleted = 0 and status = 1 and channel_id = ?", channelId).Count(count).Error; err != nil {
 
 		return err
 	}

@@ -227,6 +227,22 @@ func (access AccessAdminAuth) ContentAccessList(limit int, offset int, filter Fi
 				}
 			}
 
+			var entriesCount, pageCount int64
+
+			AT.GetaccessGrantedEntriesCount(&entriesCount, contentAccess.Id, access.Authority.DB)
+
+			AT.GetaccessGrantedPageCount(&pageCount, contentAccess.Id, access.Authority.DB)
+
+			if entriesCount > 0 {
+
+				contentAccess.AccessGrantedModules = append(contentAccess.AccessGrantedModules, "Channel")
+			}
+
+			if pageCount > 0 {
+
+				contentAccess.AccessGrantedModules = append(contentAccess.AccessGrantedModules, "Space")
+			}
+
 			if !contentAccess.ModifiedOn.IsZero() {
 
 				contentAccess.DateString = contentAccess.ModifiedOn.UTC().Format("02 Jan 2006 03:04 PM")
@@ -253,20 +269,20 @@ func (access AccessAdminAuth) ContentAccessList(limit int, offset int, filter Fi
 }
 
 /*Get Access by id*/
-func (access AccessAdminAuth) GetControlAccessById(accessid int) (accesslist TblAccessControl, pg []Page, spage []SubPage, pgroup []PageGroup, selectedspacesid []int, MembergroupIds []int, err error) {
+func (access AccessAdminAuth) GetControlAccessById(accessid int) (accesslist TblAccessControl, pg []Page, spage []SubPage, pgroup []PageGroup, selectedspacesid []int, MembergroupIds []int, channelid []int, channelEntries []Entry, err error) {
 
 	_, _, checkerr := auth.VerifyToken(access.Authority.Token, access.Authority.Secret)
 
 	if checkerr != nil {
 
-		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, checkerr
+		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, []int{}, []Entry{}, checkerr
 	}
 
 	check, err := access.Authority.IsGranted("Member-Restrict", auth.CRUD)
 
 	if err != nil {
 
-		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, err
+		return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, []int{}, []Entry{}, err
 	}
 
 	if check {
@@ -450,11 +466,49 @@ func (access AccessAdminAuth) GetControlAccessById(accessid int) (accesslist Tbl
 
 		}
 
-		return AccessControl, pages, subpages, pagegroups, accessGrantedMemgrps, accessSpaceIds, nil
+		var channelEntries []Entry
+
+		var contentAccessEntries []TblAccessControlPages
+
+		AT.GetAccessGrantedEntries(&contentAccessEntries, accessid, access.Authority.DB)
+
+		channelMap := make(map[int][]TblAccessControlPages)
+
+		for _, accessEntry := range contentAccessEntries {
+
+			chanEntry := Entry{Id: strconv.Itoa(accessEntry.EntryId), ChannelId: strconv.Itoa(accessEntry.ChannelId)}
+
+			channelEntries = append(channelEntries, chanEntry)
+
+			if _, exists := channelMap[accessEntry.ChannelId]; !exists {
+
+				channelMap[accessEntry.ChannelId] = []TblAccessControlPages{}
+
+			}
+
+			channelMap[accessEntry.ChannelId] = append(channelMap[accessEntry.ChannelId], accessEntry)
+
+		}
+
+		var channelIds []int
+
+		for channelId, entriesArr := range channelMap {
+
+			var entriesCountInChannel int64
+
+			AT.GetEntriesCountUnderChannel(&entriesCountInChannel, channelId, access.Authority.DB)
+
+			if int(entriesCountInChannel) == len(entriesArr) {
+
+				channelIds = append(channelIds, channelId)
+			}
+		}
+
+		return AccessControl, pages, subpages, pagegroups, accessGrantedMemgrps, accessSpaceIds, channelIds, channelEntries, nil
 
 	}
 
-	return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, errors.New("not authorized")
+	return TblAccessControl{}, []Page{}, []SubPage{}, []PageGroup{}, []int{}, []int{}, []int{}, []Entry{}, errors.New("not authorized")
 }
 
 /*Create Access control*/
@@ -601,11 +655,11 @@ func (access AccessAdminAuth) CreateMemberAccessControl(control MemberAccessCont
 
 			}
 
-			for _,entry := range control.ChannelEntries{
+			for _, entry := range control.ChannelEntries {
 
-				chanId,_ := strconv.Atoi(entry.ChannelId)
-				
-				entryId ,_ := strconv.Atoi(entry.Id)
+				chanId, _ := strconv.Atoi(entry.ChannelId)
+
+				entryId, _ := strconv.Atoi(entry.Id)
 
 				var channelAccess TblAccessControlPages
 
@@ -617,14 +671,14 @@ func (access AccessAdminAuth) CreateMemberAccessControl(control MemberAccessCont
 
 				channelAccess.CreatedBy = userid
 
-				channelAccess.CreatedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05")) 
+				channelAccess.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 				channelAccess.IsDeleted = 0
 
-				err = AT.InsertPageEntries(&channelAccess,access.Authority.DB)
+				err = AT.InsertPageEntries(&channelAccess, access.Authority.DB)
 
-				if err!=nil{
-				
+				if err != nil {
+
 					log.Println(err)
 				}
 			}
