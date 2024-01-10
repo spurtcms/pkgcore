@@ -317,7 +317,7 @@ func (a Memberauth) ListMembers(offset int, limit int, filter Filter, flag bool)
 
 		var member []TblMember
 
-		memberlist, _, _ := AS.MembersList(member, offset, limit, filter, flag, a.Authority.DB)
+		memberlist, _, _ := AS.MembersList(member, limit, offset, filter, flag, a.Authority.DB)
 
 		_, Total_users, _ := AS.MembersList(member, 0, 0, filter, flag, a.Authority.DB)
 
