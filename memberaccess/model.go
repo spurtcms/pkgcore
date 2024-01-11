@@ -3,8 +3,8 @@ package memberaccess
 import (
 	"time"
 
+	"github.com/spurtcms/pkgcontent/channels"
 	"github.com/spurtcms/pkgcore/member"
-	"github.com/spurtcms/spurtcms-content/channels"
 	"gorm.io/gorm"
 )
 

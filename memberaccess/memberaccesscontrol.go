@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spurtcms/pkgcontent/channels"
 	"github.com/spurtcms/pkgcore/auth"
 	"github.com/spurtcms/pkgcore/member"
-	"github.com/spurtcms/spurtcms-content/channels"
 	"gorm.io/gorm"
 )
 
@@ -1038,9 +1038,9 @@ func (access AccessAdminAuth) UpdateMemberAccessControl(control MemberAccessCont
 
 				var entryCount int64
 
-				err = AT.CheckPresenceOfChannelEntriesInContentAccess(&entryCount,memgrp.Id,chanId,entryId,access.Authority.DB)
+				err = AT.CheckPresenceOfChannelEntriesInContentAccess(&entryCount, memgrp.Id, chanId, entryId, access.Authority.DB)
 
-				if err!=nil{
+				if err != nil {
 
 					log.Println(err)
 				}
@@ -1053,37 +1053,37 @@ func (access AccessAdminAuth) UpdateMemberAccessControl(control MemberAccessCont
 
 				channelAccess.EntryId = entryId
 
-				if(entryCount==0){
+				if entryCount == 0 {
 
 					channelAccess.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-				    channelAccess.CreatedBy = userid
-					
+					channelAccess.CreatedBy = userid
+
 					channelAccess.IsDeleted = 0
 
-				    err = AT.InsertPageEntries(&channelAccess, access.Authority.DB)
-
-				    if err != nil {
-
-					   log.Println(err)
-				    }
-
-				}else if(entryCount==1){
-
-					channelAccess.ModifiedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-
-					channelAccess.ModifiedBy = userid
-
-					err = AT.UpdateChannelEntriesInContentAccess(&channelAccess,access.Authority.DB)
+					err = AT.InsertPageEntries(&channelAccess, access.Authority.DB)
 
 					if err != nil {
 
 						log.Println(err)
-					 }
+					}
+
+				} else if entryCount == 1 {
+
+					channelAccess.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+					channelAccess.ModifiedBy = userid
+
+					err = AT.UpdateChannelEntriesInContentAccess(&channelAccess, access.Authority.DB)
+
+					if err != nil {
+
+						log.Println(err)
+					}
 
 				}
 
-				if !seen_entry[entryId]{
+				if !seen_entry[entryId] {
 
 					entryIds = append(entryIds, entryId)
 
@@ -1235,7 +1235,7 @@ func (access AccessAdminAuth) UpdateMemberAccessControl(control MemberAccessCont
 				log.Println(err)
 			}
 
-			err = AT.RemoveChannelEntriesNotUnderContentAccess(&pg_access1,entryIds,access.Authority.DB)
+			err = AT.RemoveChannelEntriesNotUnderContentAccess(&pg_access1, entryIds, access.Authority.DB)
 
 			if err != nil {
 

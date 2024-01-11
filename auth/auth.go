@@ -1,4 +1,4 @@
-//Package Auth
+// Package Auth
 package auth
 
 import (
@@ -12,7 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
-
 
 type Authorization struct {
 	DB     *gorm.DB
@@ -49,9 +48,9 @@ func MigrationTable(db *gorm.DB) {
 	db.Exec(`insert into tbl_roles('id','name','slug,'description','is_active','created_by','created_on') values(1,'Admin','admin','Has the full administration power',1,1,'2023-07-25 05:50:14')`)
 
 	// db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS tbl_role_permisison_unique
-    // ON public.tbl_role_permissions USING btree
-    // (role_id ASC NULLS LAST, permission_id ASC NULLS LAST)
-    // TABLESPACE pg_default;`)
+	// ON public.tbl_role_permissions USING btree
+	// (role_id ASC NULLS LAST, permission_id ASC NULLS LAST)
+	// TABLESPACE pg_default;`)
 }
 
 type Action string
