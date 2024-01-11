@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spurtcms/spurtcms-core/auth"
-	"github.com/spurtcms/spurtcms-core/member"
+	"github.com/spurtcms/pkgcore/auth"
+	"github.com/spurtcms/pkgcore/member"
+	"github.com/spurtcms/spurtcms-content/channels"
 	"gorm.io/gorm"
 )
 
@@ -879,7 +880,11 @@ func (access AccessAdminAuth) UpdateMemberAccessControl(control MemberAccessCont
 
 		var pageIds []int
 
+		var entryIds []int
+
 		seen_page := make(map[int]bool)
+
+		seen_entry := make(map[int]bool)
 
 		for _, memgrp := range MemGrpAccess {
 
@@ -1025,6 +1030,68 @@ func (access AccessAdminAuth) UpdateMemberAccessControl(control MemberAccessCont
 
 			}
 
+			for _, entry := range control.ChannelEntries {
+
+				chanId, _ := strconv.Atoi(entry.ChannelId)
+
+				entryId, _ := strconv.Atoi(entry.Id)
+
+				var entryCount int64
+
+				err = AT.CheckPresenceOfChannelEntriesInContentAccess(&entryCount,memgrp.Id,chanId,entryId,access.Authority.DB)
+
+				if err!=nil{
+
+					log.Println(err)
+				}
+
+				var channelAccess TblAccessControlPages
+
+				channelAccess.AccessControlUserGroupId = memgrp.Id
+
+				channelAccess.ChannelId = chanId
+
+				channelAccess.EntryId = entryId
+
+				if(entryCount==0){
+
+					channelAccess.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+				    channelAccess.CreatedBy = userid
+					
+					channelAccess.IsDeleted = 0
+
+				    err = AT.InsertPageEntries(&channelAccess, access.Authority.DB)
+
+				    if err != nil {
+
+					   log.Println(err)
+				    }
+
+				}else if(entryCount==1){
+
+					channelAccess.ModifiedOn,_ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+					channelAccess.ModifiedBy = userid
+
+					err = AT.UpdateChannelEntriesInContentAccess(&channelAccess,access.Authority.DB)
+
+					if err != nil {
+
+						log.Println(err)
+					 }
+
+				}
+
+				if !seen_entry[entryId]{
+
+					entryIds = append(entryIds, entryId)
+
+					seen_entry[entryId] = true
+
+				}
+			}
+
 		}
 
 		var tblPagesData [][]TblPage
@@ -1168,6 +1235,13 @@ func (access AccessAdminAuth) UpdateMemberAccessControl(control MemberAccessCont
 				log.Println(err)
 			}
 
+			err = AT.RemoveChannelEntriesNotUnderContentAccess(&pg_access1,entryIds,access.Authority.DB)
+
+			if err != nil {
+
+				log.Println(err)
+			}
+
 		}
 
 		return true, nil
@@ -1249,4 +1323,58 @@ func (access AccessAdminAuth) DeleteMemberAccessControl(accesscontrolid int) (bo
 
 	}
 	return false, errors.New("not authorized")
+}
+
+func (access AccessAdminAuth) GetChannelsWithEntries() ([]channels.TblChannel, error) {
+
+	_, _, checkerr := auth.VerifyToken(access.Authority.Token, access.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []channels.TblChannel{}, checkerr
+	}
+
+	check, err := access.Authority.IsGranted("Member-Restrict", auth.CRUD)
+
+	if err != nil {
+
+		return []channels.TblChannel{}, err
+	}
+
+	if check {
+
+		var channel_contents []channels.TblChannel
+
+		err := AT.GetChannels(&channel_contents, access.Authority.DB)
+
+		if err != nil {
+
+			log.Println(err)
+
+			return []channels.TblChannel{}, err
+		}
+
+		var FinalChannellist []channels.TblChannel
+
+		for _, channel := range channel_contents {
+
+			var channel_entries []channels.TblChannelEntries
+
+			AT.GetChannelEntriesByChannelId(&channel_entries, channel.Id, access.Authority.DB)
+
+			if len(channel_entries) > 0 {
+
+				channel.ChannelEntries = channel_entries
+
+				FinalChannellist = append(FinalChannellist, channel)
+
+			}
+		}
+
+		return FinalChannellist, nil
+
+	}
+
+	return []channels.TblChannel{}, errors.New("not authorized")
+
 }

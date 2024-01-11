@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/spurtcms/spurtcms-core/auth"
+	"github.com/spurtcms/pkgcore/auth"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -99,7 +99,7 @@ func (a TeamAuth) ListUser(limit, offset int, filter Filters) (tbluser []TblUser
 
 				lastn = strings.ToUpper(last[:1])
 			}
-			
+
 			var Name = firstn + lastn
 
 			val.NameString = Name
@@ -174,6 +174,8 @@ func (a TeamAuth) CreateUser(teamcreate TeamCreate) error {
 		user.ProfileImage = teamcreate.ProfileImage
 
 		user.ProfileImagePath = teamcreate.ProfileImagePath
+
+		user.DefaultLanguageId = 1
 
 		user.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
@@ -612,4 +614,31 @@ func (a TeamAuth) CheckPasswordwithOld(password string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// Dashboard usercount function
+func (a TeamAuth) DashboardUserCount() (totalcount int, lasttendayscount int, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return 0, 0, checkerr
+	}
+
+	allusercount, err := TM.UserCount(a.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	lusercount, err := TM.NewuserCount(a.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	return int(allusercount), int(lusercount), nil
 }

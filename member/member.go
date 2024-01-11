@@ -1,6 +1,6 @@
 // Package Member helps to create cms admin and website.
 // Authorized user only access the functions
-// All member package functions are authenticated using [github.com/spurtcms/spurtcms-core/auth] package
+// All member package functions are authenticated using [github.com/spurtcms/pkgcore/auth] package
 package member
 
 import (
@@ -11,7 +11,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
-	"github.com/spurtcms/spurtcms-core/auth"
+	"github.com/spurtcms/pkgcore/auth"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -1251,4 +1251,30 @@ func (a Memberauth) UpdateMemberLms(Mc MemberCreation, id int) error {
 	}
 
 	return nil
+}
+
+func (a Memberauth) DashboardMemberCount() (totalcount int, lasttendayscount int, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return 0, 0, checkerr
+	}
+
+	allmembercount, err := AS.AllMemberCount(a.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	Lmembercount, err := AS.NewmemberCount(a.Authority.DB)
+
+	if err != nil {
+
+		return 0, 0, err
+	}
+
+	return int(allmembercount), int(Lmembercount), nil
 }

@@ -412,3 +412,25 @@ func (as Authstruct) UpdateMemberLms(member *TblMember, DB *gorm.DB) error {
 	}
 	return nil
 }
+
+func (as Authstruct) AllMemberCount(DB *gorm.DB) (count int64, err error) {
+
+	if err := DB.Debug().Table("tbl_members").Where("is_deleted = 0 ").Count(&count).Error; err != nil {
+
+		return 0, err
+	}
+
+	return count, nil
+
+}
+
+func (as Authstruct) NewmemberCount(DB *gorm.DB) (count int64, err error) {
+
+	if err := DB.Debug().Table("tbl_members").Where("is_deleted = 0 AND created_on >=?", time.Now().AddDate(0, 0, -10)).Count(&count).Error; err != nil {
+
+		return 0, err
+	}
+
+	return count, nil
+
+}

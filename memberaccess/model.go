@@ -3,7 +3,8 @@ package memberaccess
 import (
 	"time"
 
-	"github.com/spurtcms/spurtcms-core/member"
+	"github.com/spurtcms/pkgcore/member"
+	"github.com/spurtcms/spurtcms-content/channels"
 	"gorm.io/gorm"
 )
 
@@ -508,6 +509,69 @@ func (at AccessType) GetAccessGrantedEntries(AccessEntries *[]TblAccessControlPa
 func (at AccessType) GetEntriesCountUnderChannel(count *int64, channelId int, DB *gorm.DB) error {
 
 	if err := DB.Table("tbl_channel_entries").Where("is_deleted = 0 and status = 1 and channel_id = ?", channelId).Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) GetChannelCount(count *int64, DB gorm.DB) error {
+
+	if err := DB.Table("tbl_channels").Distinct("tbl_channels.id").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").
+		Joins("inner join tbl_channel_category on tbl_channel_category.channel_id = tbl_channels.id").
+		Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1").Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) GetChannels(channels *[]channels.TblChannel, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channels").Where("is_deleted = 0 and is_active = 1").Find(&channels).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) GetChannelEntriesByChannelId(channel_entries *[]channels.TblChannelEntries, channel_id int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_channel_entries").Where("tbl_channel_entries.is_deleted = 0 and tbl_channel_entries.status = 1 and tbl_channel_entries.channel_id = ?", channel_id).Find(&channel_entries).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) CheckPresenceOfChannelEntriesInContentAccess(count *int64, accessGroupId, chanId, entryId int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and channel_id = ? and entry_id = ?", accessGroupId, chanId, entryId).Count(count).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
+}
+
+func (at AccessType) UpdateChannelEntriesInContentAccess(chanAccess *TblAccessControlPages, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and channel_id = ? and entry_id = ?", chanAccess.AccessControlUserGroupId, chanAccess.ChannelId, chanAccess.EntryId).UpdateColumns(map[string]interface{}{"modified_on": chanAccess.ModifiedOn, "modified_by": chanAccess.ModifiedBy}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (at AccessType) RemoveChannelEntriesNotUnderContentAccess(chanAccess *TblAccessControlPages, entryIds []int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and entry_id != 0 and entry_id NOT IN ?", chanAccess.AccessControlUserGroupId, entryIds).UpdateColumns(map[string]interface{}{"is_deleted": chanAccess.IsDeleted, "deleted_on": chanAccess.DeletedOn, "deleted_by": chanAccess.DeletedBy}).Error; err != nil {
 
 		return err
 	}

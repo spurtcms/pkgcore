@@ -3,7 +3,7 @@ package cms
 import (
 	"fmt"
 
-	authority "github.com/spurtcms/spurtcms-core/auth"
+	authority "github.com/spurtcms/pkgcore/auth"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

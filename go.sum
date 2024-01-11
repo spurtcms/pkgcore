@@ -25,6 +25,10 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/spurtcms/spurtcms-content v1.0.15 h1:y1PxEIk9boG3W4SMsiYi2yk/YTE1DTwcIdEy+qnaKOc=
 github.com/spurtcms/spurtcms-content v1.0.15/go.mod h1:AMPD/9wpPJlmivBjj9dhprFiuBmQElmpFI+DzDW3BBU=
+github.com/spurtcms/spurtcms-content v1.0.34 h1:t1IdIQ1k9JqCEhMio/uAYf0nObmiDgqtUT7O7BZ0ZsE=
+github.com/spurtcms/spurtcms-content v1.0.34/go.mod h1:X/9zrEzsW6UJAsrkrtjpPc5E7FK8kF0XlM9H54Sw1Lc=
+github.com/spurtcms/spurtcms-core v1.0.28 h1:yM9SS8SLyONAX8lXnTwJEPDeuLhIDwYNJfk0Yz1M0U0=
+github.com/spurtcms/spurtcms-core v1.0.28/go.mod h1:rzKpVEpSvC1um3qHMlNSIHCRRVWDPrBySykdXLzS/JA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
