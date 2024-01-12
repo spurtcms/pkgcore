@@ -1388,10 +1388,10 @@ func (access AccessAdminAuth) GetChannelCount() (count int, err error) {
 		return 0, checkerr
 	}
 
-	var chcount *int64
+	var chcount int64
 
-	AT.GetChannelCount(chcount, *access.Authority.DB)
+	AT.GetChannelCount(&chcount, *access.Authority.DB)
 
-	return int(*chcount), nil
+	return int(chcount), nil
 
 }
