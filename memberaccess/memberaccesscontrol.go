@@ -1378,3 +1378,20 @@ func (access AccessAdminAuth) GetChannelsWithEntries() ([]channels.TblChannel, e
 	return []channels.TblChannel{}, errors.New("not authorized")
 
 }
+
+func (access AccessAdminAuth) GetChannelCount() (count int, err error) {
+
+	_, _, checkerr := auth.VerifyToken(access.Authority.Token, access.Authority.Secret)
+
+	if checkerr != nil {
+
+		return 0, checkerr
+	}
+
+	var chcount *int64
+
+	AT.GetChannelCount(chcount, *access.Authority.DB)
+
+	return int(*chcount), nil
+
+}
