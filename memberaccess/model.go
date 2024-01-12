@@ -340,7 +340,7 @@ func (at AccessType) RemoveMemberGroupsNotUnderContentAccessRights(memgrp_access
 
 func (at AccessType) RemovePagesNotUnderContentAccess(pg_access *TblAccessControlPages, pageIds []int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and page_id NOT IN ?", pg_access.AccessControlUserGroupId, pageIds).UpdateColumns(map[string]interface{}{"is_deleted": pg_access.IsDeleted, "deleted_on": pg_access.DeletedOn, "deleted_by": pg_access.DeletedBy}).Error; err != nil {
+	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and page_id != 0 and page_id NOT IN ?", pg_access.AccessControlUserGroupId, pageIds).UpdateColumns(map[string]interface{}{"is_deleted": pg_access.IsDeleted, "deleted_on": pg_access.DeletedOn, "deleted_by": pg_access.DeletedBy}).Error; err != nil {
 
 		return err
 	}
@@ -571,7 +571,7 @@ func (at AccessType) UpdateChannelEntriesInContentAccess(chanAccess *TblAccessCo
 
 func (at AccessType) RemoveChannelEntriesNotUnderContentAccess(chanAccess *TblAccessControlPages, entryIds []int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and entry_id != 0 and entry_id NOT IN ?", chanAccess.AccessControlUserGroupId, entryIds).UpdateColumns(map[string]interface{}{"is_deleted": chanAccess.IsDeleted, "deleted_on": chanAccess.DeletedOn, "deleted_by": chanAccess.DeletedBy}).Error; err != nil {
+	if err := DB.Table("tbl_access_control_pages").Where("is_deleted = 0 and access_control_user_group_id = ? and entry_id != 0 and entry_id NOT IN (?)", chanAccess.AccessControlUserGroupId, entryIds).UpdateColumns(map[string]interface{}{"is_deleted": chanAccess.IsDeleted, "deleted_on": chanAccess.DeletedOn, "deleted_by": chanAccess.DeletedBy}).Error; err != nil {
 
 		return err
 	}
