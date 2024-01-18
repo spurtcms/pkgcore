@@ -368,10 +368,18 @@ func (As Authstruct) CheckNameInMember(member *TblMember, userid int, name strin
 
 func (AS Authstruct) MemberUpdate(member *TblMember, id int, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMember{}).Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "email": member.Email, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath,
-		"password": member.Password}).Error; err != nil {
+	if member.ProfileImage == "" {
+		if err := DB.Model(TblMember{}).Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy}).Error; err != nil {
 
-		return err
+			return err
+		}
+
+	} else {
+
+		if err := DB.Model(TblMember{}).Where("id=?", id).UpdateColumns(map[string]interface{}{"first_name": member.FirstName, "last_name": member.LastName, "mobile_no": member.MobileNo, "modified_on": member.ModifiedOn, "modified_by": member.ModifiedBy, "profile_image": member.ProfileImage, "profile_image_path": member.ProfileImagePath}).Error; err != nil {
+
+			return err
+		}
 	}
 
 	return nil
@@ -433,4 +441,28 @@ func (as Authstruct) NewmemberCount(DB *gorm.DB) (count int64, err error) {
 
 	return count, nil
 
+}
+
+// pass member group id and get member
+
+func (as Authstruct) GetMemberDetails(members []TblMember, id int, DB *gorm.DB) (member []TblMember, err error) {
+
+	if err := DB.Debug().Table("tbl_members").Where("is_deleted = 0 AND member_group_id=?", id).Find(&members).Error; err != nil {
+
+		return []TblMember{}, err
+	}
+
+	return members, nil
+}
+
+// Update member group is default group
+
+func (as Authstruct) UpdateMembers(members *TblMember, id []int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_members").Where("tbl_members.id IN ?", id).UpdateColumns(map[string]interface{}{"member_group_id": members.MemberGroupId}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 }

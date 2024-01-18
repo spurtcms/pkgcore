@@ -263,7 +263,7 @@ func (a Memberauth) UpdateMemberGroup(membergrpc MemberGroupCreation, id int) er
 /*Delete Member Group*/
 func (a Memberauth) DeleteMemberGroup(id int) error {
 
-	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
@@ -279,6 +279,28 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 
 	if check {
 
+		var member []TblMember
+
+		memberlist, _ := AS.GetMemberDetails(member, id, a.Authority.DB)
+
+		var memberid []int
+
+		for _, v := range memberlist {
+
+			memberid = append(memberid, v.Id)
+
+		}
+
+		var mem TblMember
+
+		mem.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		mem.ModifiedBy = userid
+
+		mem.MemberGroupId = 1
+
+		AS.UpdateMembers(&mem, memberid, a.Authority.DB)
+
 		var membergroup TblMemberGroup
 
 		if id <= 0 {
@@ -286,6 +308,7 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 			return errors.New("invalid id cannot delete")
 
 		}
+
 		membergroup.IsDeleted = 1
 
 		err := AS.MemberGroupDelete(&membergroup, id, a.Authority.DB)
@@ -296,7 +319,9 @@ func (a Memberauth) DeleteMemberGroup(id int) error {
 		}
 
 	} else {
+
 		return errors.New("not authorized")
+
 	}
 
 	return nil
@@ -1141,9 +1166,9 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 
 	member.ProfileImagePath = MemC.ProfileImagePath
 
-	member.Password = hashingPassword(MemC.Password)
+	// member.Password = hashingPassword(MemC.Password)
 
-	member.Email = MemC.Email
+	// member.Email = MemC.Email
 
 	// member.IsActive = MemC.IsActive
 
