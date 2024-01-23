@@ -773,21 +773,22 @@ func (a Memberauth) MemberDeletePopup(id int) (member TblMember, err1 error) {
 
 }
 
-// member is_active
-func (a Memberauth) MemberIsActive(memberid int, status int) error {
+
+// member group is_active
+func (a Memberauth) MemberIsActive(memberid int, status int) (bool, error) {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return false, checkerr
 	}
 
-	check, err := a.Authority.IsGranted("Member", auth.Read)
+	check, err := a.Authority.IsGranted("Member Group", auth.Read)
 
 	if err != nil {
 
-		return err
+		return false, err
 	}
 
 	if check {
@@ -798,17 +799,11 @@ func (a Memberauth) MemberIsActive(memberid int, status int) error {
 
 		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-		err := AS.MemberIsActive(memberstatus, memberid, status, a.Authority.DB)
+		AS.MemberIsActive(memberstatus, memberid, status, a.Authority.DB)
 
-		if err != nil {
-			return err
-		}
-	} else {
-
-		return errors.New("not authorized")
+		return true, nil
 	}
-
-	return nil
+	return false, errors.New("not authorized")
 
 }
 
@@ -1172,13 +1167,13 @@ func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {
 
 	// member.IsActive = MemC.IsActive
 
-	// member.Username = MemC.Username
+	member.Username = MemC.Username
 
 	// member.MemberGroupId = MemC.GroupId
 
 	member.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
-	member.ModifiedBy = 1
+	member.ModifiedBy = memberid
 
 	err1 := AS.MemberUpdate(&member, memberid, M.Auth.DB)
 
