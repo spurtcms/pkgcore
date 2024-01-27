@@ -825,56 +825,60 @@ func (a Authorization) IsGranted(modulename string, permisison Action) (bool, er
 		return false, checkerr
 	}
 
-	var modid int
+	if roleid != 1 { //if not an admin user
 
-	var module TblModule
+		var modid int
 
-	var modpermissions TblModulePermission
+		var module TblModule
 
-	if err := a.DB.Table("tbl_modules").Where("module_name=?", modulename).Find(&module).Error; err != nil {
+		var modpermissions TblModulePermission
 
-		return false, err
-	}
-
-	if err1 := a.DB.Table("tbl_module_permissions").Where("display_name=?", modulename).Find(&modpermissions).Error; err1 != nil {
-
-		return false, err1
-	}
-
-	if module.Id != 0 {
-
-		modid = module.Id
-
-	} else {
-
-		modid = modpermissions.Id
-	}
-
-	var modulepermission []TblModulePermission
-
-	if permisison == "CRUD" {
-
-		if err := a.DB.Table("tbl_module_permissions").Where("id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete')", modid).Find(&modulepermission).Error; err != nil {
+		if err := a.DB.Table("tbl_modules").Where("module_name=?", modulename).Find(&module).Error; err != nil {
 
 			return false, err
 		}
 
-	} else {
+		if err1 := a.DB.Table("tbl_module_permissions").Where("display_name=?", modulename).Find(&modpermissions).Error; err1 != nil {
 
-		if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and display_name=?", modid, permisison).Find(&modulepermission).Error; err != nil {
-
-			return false, err
+			return false, err1
 		}
 
-	}
+		if module.Id != 0 {
 
-	for _, val := range modulepermission {
+			modid = module.Id
 
-		var rolecheck TblRolePermission
+		} else {
 
-		if err := a.DB.Table("tbl_role_permissions").Where("permission_id=? and role_id=?", val.Id, roleid).First(&rolecheck).Error; err != nil {
+			modid = modpermissions.Id
+		}
 
-			return false, err
+		var modulepermission []TblModulePermission
+
+		if permisison == "CRUD" {
+
+			if err := a.DB.Table("tbl_module_permissions").Where("id=? and (full_access_permission=1 or display_name='View' or display_name='Update' or  display_name='Create' or display_name='Delete')", modid).Find(&modulepermission).Error; err != nil {
+
+				return false, err
+			}
+
+		} else {
+
+			if err := a.DB.Table("tbl_module_permissions").Where("module_id=? and display_name=?", modid, permisison).Find(&modulepermission).Error; err != nil {
+
+				return false, err
+			}
+
+		}
+
+		for _, val := range modulepermission {
+
+			var rolecheck TblRolePermission
+
+			if err := a.DB.Table("tbl_role_permissions").Where("permission_id=? and role_id=?", val.Id, roleid).First(&rolecheck).Error; err != nil {
+
+				return false, err
+			}
+
 		}
 
 	}
