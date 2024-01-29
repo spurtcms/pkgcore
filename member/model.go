@@ -183,7 +183,7 @@ func (as Authstruct) GetGroupData(membergroup []TblMemberGroup, DB *gorm.DB) (me
 
 	var membergrouplist []TblMemberGroup
 
-	if err := DB.Model(TblMemberGroup{}).Where("is_deleted = 0 and is_active = 1").Find(&membergrouplist).Error; err != nil {
+	if err := DB.Model(TblMemberGroup{}).Where("is_deleted = 0 and is_active = 1").Order("name").Find(&membergrouplist).Error; err != nil {
 
 		return []TblMemberGroup{}, err
 
