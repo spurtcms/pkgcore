@@ -24,7 +24,7 @@ type TblUser struct {
 	CreatedBy            int
 	ModifiedOn           time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy           int       `gorm:"DEFAULT:NULL"`
-	LastLogin            int
+	LastLogin            time.Time `gorm:"DEFAULT:NULL"`
 	IsDeleted            int
 	DeletedOn            time.Time `gorm:"DEFAULT:NULL"`
 	DeletedBy            int       `gorm:"DEFAULT:NULL"`
@@ -265,7 +265,6 @@ func (t Team) CheckRoleUsed(user *TblUser, roleid int, DB *gorm.DB) error {
 
 }
 
-
 func (t Team) UserCount(DB *gorm.DB) (count int64, err error) {
 
 	if err := DB.Table("tbl_users").Where("is_deleted = 0 ").Count(&count).Error; err != nil {
@@ -276,7 +275,6 @@ func (t Team) UserCount(DB *gorm.DB) (count int64, err error) {
 	return count, nil
 
 }
-
 
 func (t Team) NewuserCount(DB *gorm.DB) (count int64, err error) {
 

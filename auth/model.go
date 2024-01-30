@@ -68,7 +68,7 @@ type TblUser struct {
 	CreatedBy            int
 	ModifiedOn           time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy           int       `gorm:"DEFAULT:NULL"`
-	LastLogin            int
+	LastLogin            time.Time `gorm:"DEFAULT:NULL"`
 	IsDeleted            int
 	DeletedOn            time.Time `gorm:"DEFAULT:NULL"`
 	DeletedBy            int       `gorm:"DEFAULT:NULL"`
