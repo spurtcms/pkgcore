@@ -113,7 +113,7 @@ func VerifyToken(token string, secret string) (userid, roleid int, err error) {
 }
 
 // Check UserName Password
-func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, error) {
+func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, int, error) {
 
 	username := Lc.Username
 
@@ -123,7 +123,7 @@ func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, error) {
 
 	if err := db.Table("tbl_users").Where("username = ?", username).First(&user).Error; err != nil {
 
-		return "", err
+		return "", 0, err
 
 	}
 
@@ -131,7 +131,7 @@ func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, error) {
 
 	if passerr != nil || passerr == bcrypt.ErrMismatchedHashAndPassword {
 
-		return "", errors.New("invalid password")
+		return "", 0, errors.New("invalid password")
 
 	}
 
@@ -139,10 +139,10 @@ func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, error) {
 
 	if err != nil {
 
-		return "", err
+		return "", 0, err
 	}
 
-	return token, nil
+	return token, user.Id, nil
 }
 
 // create role
