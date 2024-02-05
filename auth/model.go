@@ -169,7 +169,7 @@ func (as Authstruct) GetAllRoles(role *[]TblRole, limit, offset int, filter Filt
 
 func (as Authstruct) GetRolesData(roles *[]TblRole, DB *gorm.DB) error {
 
-	if err := DB.Where("is_deleted=? and is_active=1", 0).Find(&roles).Error; err != nil {
+	if err := DB.Where("is_deleted=? and is_active=1", 0).Order("name").Find(&roles).Error; err != nil {
 
 		return err
 

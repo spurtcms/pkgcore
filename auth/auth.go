@@ -642,7 +642,7 @@ func (a PermissionAu) PermissionListRoleId(limit, offset, roleid int, filter Fil
 
 				allmodules = append(allmodules, newmod)
 
-			} else if val.ModuleName == "LMS" {
+			} else if val.ModuleName == "Spaces" {
 
 				var newmod TblModule
 
