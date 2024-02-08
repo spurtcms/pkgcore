@@ -121,7 +121,7 @@ func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, int, erro
 
 	var user TblUser
 
-	if err := db.Table("tbl_users").Where("username = ?", username).First(&user).Error; err != nil {
+	if err := db.Table("tbl_users").Where("username = ? and is_deleted=0", username).First(&user).Error; err != nil {
 
 		return "", 0, err
 

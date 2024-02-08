@@ -688,13 +688,6 @@ func (a Memberauth) CheckNumberInMember(id int, number string) (bool, error) {
 // Check Number is already exits or not
 func (a MemberAuth) CheckNumberInMember(id int, number string) (bool, error) {
 
-	// _, _, checkerr := auth.VerifyToken(a.Auth.Token, a.Auth.Secret)
-
-	// if checkerr != nil {
-
-	// 	return false, checkerr
-	// }
-
 	var member TblMember
 
 	err := AS.CheckNumberInMember(&member, number, id, a.Auth.DB)
@@ -772,7 +765,6 @@ func (a Memberauth) MemberDeletePopup(id int) (member TblMember, err1 error) {
 	return member, nil
 
 }
-
 
 // member group is_active
 func (a Memberauth) MemberIsActive(memberid int, status int) (bool, error) {
