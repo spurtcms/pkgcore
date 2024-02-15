@@ -25,6 +25,7 @@ type TblModulePermission struct {
 	Id                   int `gorm:"primaryKey;auto_increment"`
 	RouteName            string
 	DisplayName          string
+	SlugName             string
 	Description          string
 	ModuleId             int
 	CreatedBy            int
