@@ -147,7 +147,7 @@ type LoginCheck struct {
 /*get all roles*/
 func (as Authstruct) GetAllRoles(role *[]TblRole, limit, offset int, filter Filter, DB *gorm.DB) (rolecount int64, err error) {
 
-	query := DB.Table("tbl_roles").Where("is_deleted = 0 and slug!='admin'").Order("id desc")
+	query := DB.Table("tbl_roles").Where("is_deleted = 0").Order("id desc")
 
 	if filter.Keyword != "" {
 
