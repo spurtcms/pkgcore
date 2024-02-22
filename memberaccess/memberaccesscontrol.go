@@ -12,11 +12,11 @@ import (
 	"github.com/spurtcms/pkgcore/member"
 	"gorm.io/gorm"
 )
-
+/*this struct holds dbconnection ,token*/
 type AccessAuth struct {
 	Authority auth.Authorization
 }
-
+/*this struct holds dbconnection ,token*/
 type AccessAdminAuth struct {
 	Authority auth.Authorization
 }

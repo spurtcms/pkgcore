@@ -18,11 +18,11 @@ type Authorization struct {
 	Token  string
 	Secret string
 }
-
+/*this struct holds dbconnection ,token*/
 type Role struct {
 	Auth Authorization
 }
-
+/*this struct holds dbconnection ,token*/
 type PermissionAu struct {
 	Auth Authorization
 }
@@ -55,7 +55,7 @@ func MigrationTable(db *gorm.DB) {
 
 type Action string
 
-const (
+const ( //for permission check
 	Create Action = "Create"
 
 	Read Action = "View"

@@ -1,6 +1,6 @@
 // Package Teams will helps to create your cms application admin users
 // Authorized user only access the functions
-// All teams package functions are authenticated using [github.com/spurtcms/spurtcms-core/auth] package
+// All teams package functions are authenticated using [github.com/spurtcms/pkg-core/auth] package
 package teams
 
 import (
@@ -337,7 +337,7 @@ func (a TeamAuth) DeleteUser(id int) error {
 	return nil
 }
 
-// check email
+// check email is already exists in your database
 func (a TeamAuth) CheckEmail(Email string, userid int) (users TblUser, checl bool, errr error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -641,4 +641,24 @@ func (a TeamAuth) DashboardUserCount() (totalcount int, lasttendayscount int, er
 	}
 
 	return int(allusercount), int(lusercount), nil
+}
+
+/*Logout Last Active*/
+func (a TeamAuth) LastLoginActivity() (err error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	Lerr := TM.Lastlogin(userid, time.Now(), a.Authority.DB)
+
+	if Lerr != nil {
+
+		return err
+	}
+
+	return nil
 }

@@ -286,3 +286,13 @@ func (t Team) NewuserCount(DB *gorm.DB) (count int64, err error) {
 	return count, nil
 
 }
+
+func (t Team) Lastlogin(id int, log_time time.Time, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_users").Where("id=? ", id).Update("last_login", log_time).Error; err != nil {
+
+		return err
+	}
+	return nil
+
+}

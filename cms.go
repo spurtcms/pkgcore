@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// create instance
+// create instance 
 func NewInstance(a *authority.Option) authority.Authorization {
 
 	auth := authority.Authorization{
