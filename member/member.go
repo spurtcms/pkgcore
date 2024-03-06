@@ -903,6 +903,13 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	token, err := CreateMemberToken(member.Id, member.MemberGroupId, secretkey)
 
+	err1 := AS.LastLoginMembers(member.Id, M.Auth.DB)
+
+	if err1 != nil {
+
+		fmt.Println(err1)
+	}
+
 	if err != nil {
 
 		return "", err
@@ -1289,4 +1296,61 @@ func (a Memberauth) DashboardMemberCount() (totalcount int, lasttendayscount int
 	}
 
 	return int(allmembercount), int(Lmembercount), nil
+}
+
+// Active MemberList Function//
+func (a Memberauth) ActiveMemberList(limit int) (member []TblMember, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblMember{}, checkerr
+	}
+
+	var members []TblMember
+
+	activememlist, err := AS.ActiveMemberList(members, limit, a.Authority.DB)
+
+	var memberlist []TblMember
+
+	for _, val := range activememlist {
+
+		if !val.ModifiedOn.IsZero() {
+
+			val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+
+		} else {
+			val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+
+		}
+
+		memberlist = append(memberlist, val)
+	}
+
+	if err != nil {
+
+		return []TblMember{}, err
+	}
+
+	return memberlist, nil
+
+}
+
+func (a MemberAuth) ChangeActivestatus() error {
+
+	member_id, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	err := AS.ChangeActivestatus(member_id, a.Auth.DB)
+
+	if err != nil {
+
+		fmt.Println(err)
+	}
+	return nil
 }

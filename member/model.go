@@ -3,6 +3,7 @@ package member
 import (
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -79,6 +80,22 @@ type Filter struct {
 	Status   string
 	FromDate string
 	ToDate   string
+}
+
+type TblMemberProfile struct {
+	Id              int
+	MemberId        int
+	ProfilePage     string
+	ProfileName     string
+	ProfileSlug     string
+	CompanyLogo     string
+	CompanyName     string
+	CompanyLocation string
+	About           string
+	SeoTitle        string
+	SeoDescription  string
+	SeoKeyword      string
+	MemberDetails   datatypes.JSON
 }
 
 // Member Group List
@@ -465,4 +482,36 @@ func (as Authstruct) UpdateMembers(members *TblMember, id []int, DB *gorm.DB) er
 	}
 
 	return nil
+}
+
+func (as Authstruct) LastLoginMembers(id int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"last_login": 1}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (as Authstruct) ActiveMemberList(member []TblMember, limit int, DB *gorm.DB) (members []TblMember, err error) {
+
+	if err := DB.Debug().Table("tbl_members").Where("is_deleted=0 and last_login=?", 1).Find(&members).Limit(limit).Error; err != nil {
+
+		return []TblMember{}, err
+
+	}
+
+	return members, nil
+}
+
+func (as Authstruct) ChangeActivestatus(memberid int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"last_login": 0}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
 }
