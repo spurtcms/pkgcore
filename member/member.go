@@ -557,6 +557,29 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 			return err
 		}
 
+		var memberprofile TblMemberProfile
+
+		memberprofile.MemberId = id
+
+		memberprofile.CompanyName = Mc.CompanyName
+
+		memberprofile.CompanyLocation = Mc.CompanyLocation
+
+		memberprofile.CompanyLogo = Mc.ProfileImage
+
+		memberprofile.ProfileName = Mc.ProfileName
+
+		memberprofile.ProfilePage = Mc.ProfilePage
+
+		memberprofile.About = Mc.About
+
+		err1 := AS.UpdateMemberProfile(&memberprofile, a.Authority.DB)
+
+		if err1 != nil {
+
+			return err1
+		}
+
 	} else {
 
 		return errors.New("not authorized")
@@ -830,6 +853,39 @@ func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 	return member, nil
 
 }
+
+func (a Memberauth) GetMemberProfileByMemberId(memberid int) (memberprof TblMemberProfile, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return TblMemberProfile{}, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member", auth.Read)
+
+	if err != nil {
+
+		return TblMemberProfile{}, err
+	}
+
+	if check {
+
+		var memberprof TblMemberProfile
+
+		err1 := AS.GetMemberProfileByMemberId(&memberprof, memberid, a.Authority.DB)
+
+		if err1 != nil {
+
+			return TblMemberProfile{}, err1
+		}
+
+	}
+	return memberprof, nil
+
+}
+
 
 func (a Memberauth) GetMemberById(id int) (membergroup TblMemberGroup, err error) {
 

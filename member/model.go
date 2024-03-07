@@ -67,6 +67,12 @@ type MemberCreation struct {
 	Username         string
 	Password         string
 	GroupId          int
+	CompanyName      string
+	CompanyLocation  string
+	CompanyLogo      string
+	ProfileName      string
+	ProfilePage      string
+	About            string
 }
 
 type MemberGroupCreation struct {
@@ -237,13 +243,33 @@ func (as Authstruct) UpdateMember(member *TblMember, DB *gorm.DB) error {
 	return nil
 }
 
-// Get Member Details
+func (as Authstruct) UpdateMemberProfile(memberprof *TblMemberProfile, DB *gorm.DB) error {
 
+	if err := DB.Save(&memberprof).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+// Get Member Details
 func (as Authstruct) MemberDetails(member *TblMember, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMember{}).Where("id=?", memberid).First(&member).Error; err != nil {
+	if err := DB.Model(TblMember{}).Select("tbl_members.*,tbl_member_groups.name as group_name").Joins("inner join tbl_member_groups on tbl_member_groups.id = tbl_members.member_group_id").Where("tbl_members.id=?", memberid).First(&member).Error; err != nil {
 		return err
 
+	}
+
+	return nil
+}
+
+// Get Member group data
+func (As Authstruct) GetMemberProfileByMemberId(memberprof *TblMemberProfile, id int, DB *gorm.DB) (err error) {
+
+	if err := DB.Model(TblMemberProfile{}).Where("member_id=?", id).First(&memberprof).Error; err != nil {
+
+		return err
 	}
 
 	return nil
