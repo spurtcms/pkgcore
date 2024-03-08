@@ -68,6 +68,7 @@ type MemberCreation struct {
 	Username         string
 	Password         string
 	GroupId          int
+	ProfileId        int
 	CompanyName      string
 	CompanyLocation  string
 	CompanyLogo      string
@@ -513,7 +514,7 @@ func (as Authstruct) UpdateMembers(members *TblMember, id []int, DB *gorm.DB) er
 
 func (as Authstruct) LastLoginMembers(id int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"last_login": 1,"login_time": time.Now().UTC().Format("2006-01-02 15:04:05")}).Error; err != nil {
+	if err := DB.Debug().Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"last_login": 1, "login_time": time.Now().UTC().Format("2006-01-02 15:04:05")}).Error; err != nil {
 
 		return err
 	}
