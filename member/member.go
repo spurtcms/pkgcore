@@ -886,7 +886,6 @@ func (a Memberauth) GetMemberProfileByMemberId(memberid int) (memberprof TblMemb
 
 }
 
-
 func (a Memberauth) GetMemberById(id int) (membergroup TblMemberGroup, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -1372,14 +1371,15 @@ func (a Memberauth) ActiveMemberList(limit int) (member []TblMember, err error) 
 
 	for _, val := range activememlist {
 
-		if !val.ModifiedOn.IsZero() {
+		// if !val.ModifiedOn.IsZero() {
 
-			val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
+		// 	val.DateString = val.ModifiedOn.Format("02 Jan 2006 03:04 PM")
 
-		} else {
-			val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
+		// } else {
+		// 	val.DateString = val.CreatedOn.Format("02 Jan 2006 03:04 PM")
 
-		}
+		// }
+		val.DateString = val.LoginTime.Format("02 Jan 2006 03:04 PM")
 
 		memberlist = append(memberlist, val)
 	}
