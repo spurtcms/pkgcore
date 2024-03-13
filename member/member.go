@@ -492,6 +492,7 @@ func (a Memberauth) CreateMember(Mc MemberCreation) error {
 }
 
 // Update Member
+// Update Member
 func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -559,25 +560,61 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 		var memberprofile TblMemberProfile
 
-		memberprofile.MemberId = id
+		err1 := AS.GetMemberProfileByMemberId(&memberprofile, id, a.Authority.DB)
 
-		memberprofile.CompanyName = Mc.CompanyName
+		if err1 != nil && Mc.CompanyName != " " {
 
-		memberprofile.CompanyLocation = Mc.CompanyLocation
+			var memberprof TblMemberProfile
 
-		memberprofile.CompanyLogo = Mc.ProfileImage
+			memberprof.MemberId = id
 
-		memberprofile.ProfileName = Mc.ProfileName
+			memberprof.CompanyName = Mc.CompanyName
 
-		memberprofile.ProfilePage = Mc.ProfilePage
+			memberprof.CompanyLocation = Mc.CompanyLocation
 
-		memberprofile.About = Mc.About
+			memberprof.CompanyLogo = Mc.CompanyLogo
 
-		err1 := AS.UpdateMemberProfile(&memberprofile, a.Authority.DB)
+			memberprof.ProfileName = Mc.ProfileName
 
-		if err1 != nil {
+			memberprof.ProfilePage = Mc.ProfilePage
 
-			return err1
+			memberprof.About = Mc.About
+
+			err2 := AS.UpdateMemberProfile(&memberprof, a.Authority.DB)
+
+			if err2 != nil {
+
+				return err2
+			}
+
+		}
+		if err1 == nil && Mc.CompanyName != " " {
+
+			var memberprof TblMemberProfile
+
+			memberprof.MemberId = id
+
+			memberprof.Id = Mc.ProfileId
+
+			memberprof.CompanyName = Mc.CompanyName
+
+			memberprof.CompanyLocation = Mc.CompanyLocation
+
+			memberprof.CompanyLogo = Mc.CompanyLogo
+
+			memberprof.ProfileName = Mc.ProfileName
+
+			memberprof.ProfilePage = Mc.ProfilePage
+
+			memberprof.About = Mc.About
+
+			err2 := AS.MemberprofileUpdate(&memberprof, memberprofile.Id, a.Authority.DB)
+
+			if err2 != nil {
+
+				return err2
+			}
+
 		}
 
 	} else {
@@ -854,7 +891,7 @@ func (a Memberauth) GetMemberDetails(id int) (members TblMember, err error) {
 
 }
 
-func (a Memberauth) GetMemberProfileByMemberId(memberid int) (memberprof TblMemberProfile, err error) {
+func (a Memberauth) GetMemberProfileByMemberId(memberid int) (memberprofs TblMemberProfile, err error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -870,9 +907,9 @@ func (a Memberauth) GetMemberProfileByMemberId(memberid int) (memberprof TblMemb
 		return TblMemberProfile{}, err
 	}
 
-	if check {
+	var memberprof TblMemberProfile
 
-		var memberprof TblMemberProfile
+	if check {
 
 		err1 := AS.GetMemberProfileByMemberId(&memberprof, memberid, a.Authority.DB)
 
@@ -1409,4 +1446,44 @@ func (a MemberAuth) ChangeActivestatus() error {
 		fmt.Println(err)
 	}
 	return nil
+}
+
+func (a MemberAuth) UpdateMemberProfile(memberdetails map[string]interface{}) error {
+
+	member_id, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	var Memberprof TblMemberProfile
+
+	Memberprof.MemberDetails = memberdetails
+
+	err1 := AS.MemberprofileUpdateFrontend(&Memberprof, member_id, a.Auth.DB)
+
+	if err1 != nil {
+
+		return err1
+	}
+
+	return nil
+
+}
+
+// Check UserName is already exists or not
+func (a MemberAuth) CheckNameInMember(id int, name string) (bool, error) {
+
+	var member TblMember
+
+	err := AS.CheckNameInMember(&member, id, name, a.Auth.DB)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	return true, nil
+
 }

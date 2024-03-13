@@ -103,7 +103,7 @@ type TblMemberProfile struct {
 	SeoTitle        string
 	SeoDescription  string
 	SeoKeyword      string
-	MemberDetails   datatypes.JSON
+	MemberDetails   datatypes.JSONMap
 }
 
 // Member Group List
@@ -542,4 +542,32 @@ func (as Authstruct) ChangeActivestatus(memberid int, DB *gorm.DB) error {
 
 	return nil
 
+}
+
+// update membercompanyprofile
+func (AS Authstruct) MemberprofileUpdate(memberprof *TblMemberProfile, id int, DB *gorm.DB) error {
+
+	query := DB.Model(TblMemberProfile{}).Where("id=?", id)
+
+	if memberprof.CompanyLogo == " " {
+
+		query.Omit("company_logo").UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword})
+
+	} else {
+
+		query.UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_logo": memberprof.CompanyLogo, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword})
+
+	}
+	return nil
+}
+
+// update membercompanyprofile
+func (AS Authstruct) MemberprofileUpdateFrontend(memberprof *TblMemberProfile, id int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblMemberProfile{}).Where("member_id=?", id).UpdateColumns(map[string]interface{}{"member_details": memberprof.MemberDetails}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
 }
