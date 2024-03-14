@@ -562,11 +562,13 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 		err1 := AS.GetMemberProfileByMemberId(&memberprofile, id, a.Authority.DB)
 
-		if err1 != nil && Mc.CompanyName != " " {
+		if err1 != nil {
 
 			var memberprof TblMemberProfile
 
 			memberprof.MemberId = id
+
+			memberprof.Id = Mc.ProfileId
 
 			memberprof.CompanyName = Mc.CompanyName
 
@@ -588,7 +590,7 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 			}
 
 		}
-		if err1 == nil && Mc.CompanyName != " " {
+		if err1 == nil {
 
 			var memberprof TblMemberProfile
 
@@ -736,6 +738,37 @@ func (a Memberauth) CheckNumberInMember(id int, number string) (bool, error) {
 		var member TblMember
 
 		err := AS.CheckNumberInMember(&member, number, id, a.Authority.DB)
+
+		if err != nil {
+			return false, err
+		}
+
+	}
+	return true, nil
+}
+
+// Check Number is already exits or not
+func (a Memberauth) CheckProfileNameInMember(id int, number string) (bool, error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member", auth.Create)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var memberprof TblMemberProfile
+
+		err := AS.CheckProfileNameInMember(&memberprof, number, id, a.Authority.DB)
 
 		if err != nil {
 			return false, err

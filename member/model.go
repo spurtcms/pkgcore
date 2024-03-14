@@ -104,6 +104,13 @@ type TblMemberProfile struct {
 	SeoDescription  string
 	SeoKeyword      string
 	MemberDetails   datatypes.JSONMap
+	CreatedBy       int
+	CreatedOn       time.Time
+	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
+	ModifiedOn      time.Time `gorm:"DEFAULT:NULL"`
+	IsDeleted       int       `gorm:"DEFAULT:0"`
+	DeletedBy       int       `gorm:"DEFAULT:NULL"`
+	DeletedOn       time.Time `gorm:"DEFAULT:NULL"`
 }
 
 // Member Group List
@@ -320,6 +327,16 @@ func (As Authstruct) CheckNumberInMember(member *TblMember, number string, useri
 
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (As Authstruct) CheckProfileNameInMember(member *TblMemberProfile, name string, memberid int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblMemberProfile{}).Where("profile_name = ? and member_id not in (?) and is_deleted=0", name, memberid).First(&member).Error; err != nil {
+
+		return err
 	}
 
 	return nil
@@ -549,13 +566,13 @@ func (AS Authstruct) MemberprofileUpdate(memberprof *TblMemberProfile, id int, D
 
 	query := DB.Model(TblMemberProfile{}).Where("id=?", id)
 
-	if memberprof.CompanyLogo == " " {
+	if memberprof.CompanyLogo == "" {
 
-		query.Omit("company_logo").UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword})
+		query.Omit("company_logo").UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword, "profile_page": memberprof.ProfilePage})
 
 	} else {
 
-		query.UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_logo": memberprof.CompanyLogo, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword})
+		query.UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_logo": memberprof.CompanyLogo, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword, "profile_page": memberprof.ProfilePage})
 
 	}
 	return nil
