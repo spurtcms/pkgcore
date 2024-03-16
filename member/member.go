@@ -1520,3 +1520,16 @@ func (a MemberAuth) CheckNameInMember(id int, name string) (bool, error) {
 	return true, nil
 
 }
+
+func (M MemberAuth) GraphqlMemberLogin(email string, db *gorm.DB) (TblMember, error) {
+
+	var member TblMember
+
+	if err := db.Model(TblMember{}).Where("email = ? and is_deleted=0", email).First(&member).Error; err != nil {
+
+		return TblMember{}, errors.New("your email not registered")
+
+	}
+
+	return member, nil
+}

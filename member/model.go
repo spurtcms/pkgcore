@@ -91,7 +91,7 @@ type Filter struct {
 }
 
 type TblMemberProfile struct {
-	Id              int
+	Id              int `gorm:"column:id"`
 	MemberId        int
 	ProfilePage     string
 	ProfileName     string
@@ -103,7 +103,7 @@ type TblMemberProfile struct {
 	SeoTitle        string
 	SeoDescription  string
 	SeoKeyword      string
-	MemberDetails   datatypes.JSONMap
+	MemberDetails   datatypes.JSONMap `json:"memberDetails" gorm:"column:member_details;type:jsonb"`
 	CreatedBy       int
 	CreatedOn       time.Time
 	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
