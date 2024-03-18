@@ -492,7 +492,6 @@ func (a Memberauth) CreateMember(Mc MemberCreation) error {
 }
 
 // Update Member
-// Update Member
 func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
@@ -582,6 +581,12 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 			memberprof.About = Mc.About
 
+			memberprof.Linkedin = Mc.LinkedIn
+
+			memberprof.Twitter = Mc.Twitter
+
+			memberprof.Website = Mc.Website
+
 			err2 := AS.UpdateMemberProfile(&memberprof, a.Authority.DB)
 
 			if err2 != nil {
@@ -609,6 +614,12 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 			memberprof.ProfilePage = Mc.ProfilePage
 
 			memberprof.About = Mc.About
+
+			memberprof.Linkedin = Mc.LinkedIn
+
+			memberprof.Twitter = Mc.Twitter
+
+			memberprof.Website = Mc.Website
 
 			err2 := AS.MemberprofileUpdate(&memberprof, memberprofile.Id, a.Authority.DB)
 
