@@ -587,6 +587,12 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 			memberprof.Website = Mc.Website
 
+			memberprof.ClaimStatus = Mc.ClaimStatus
+
+			memberprof.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			memberprof.CreatedBy = userid
+
 			err2 := AS.UpdateMemberProfile(&memberprof, a.Authority.DB)
 
 			if err2 != nil {
@@ -620,6 +626,12 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 			memberprof.Twitter = Mc.Twitter
 
 			memberprof.Website = Mc.Website
+
+			memberprof.ClaimStatus = Mc.ClaimStatus
+
+			memberprof.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+			memberprof.ModifiedBy = userid
 
 			err2 := AS.MemberprofileUpdate(&memberprof, memberprofile.Id, a.Authority.DB)
 

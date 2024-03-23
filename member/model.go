@@ -78,6 +78,7 @@ type MemberCreation struct {
 	LinkedIn         string
 	Website          string
 	Twitter          string
+	ClaimStatus      int
 }
 
 type MemberGroupCreation struct {
@@ -110,6 +111,7 @@ type TblMemberProfile struct {
 	SeoDescription  string
 	SeoKeyword      string
 	MemberDetails   datatypes.JSONMap `json:"memberDetails" gorm:"column:member_details;type:jsonb"`
+	ClaimStatus     int               `gorm:"DEFAULT:0"`
 	CreatedBy       int
 	CreatedOn       time.Time
 	ModifiedBy      int       `gorm:"DEFAULT:NULL"`
@@ -574,13 +576,14 @@ func (AS Authstruct) MemberprofileUpdate(memberprof *TblMemberProfile, id int, D
 
 	if memberprof.CompanyLogo == "" {
 
-		query.Omit("company_logo").UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword, "profile_page": memberprof.ProfilePage, "twitter": memberprof.Twitter, "linkedin": memberprof.Linkedin, "website": memberprof.Website})
+		query.Omit("company_logo").UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword, "profile_page": memberprof.ProfilePage, "twitter": memberprof.Twitter, "linkedin": memberprof.Linkedin, "website": memberprof.Website, "claim_status": memberprof.ClaimStatus, "modified_by": memberprof.ModifiedBy, "modified_on": memberprof.ModifiedOn})
 
 	} else {
 
-		query.UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_logo": memberprof.CompanyLogo, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword, "profile_page": memberprof.ProfilePage, "twitter": memberprof.Twitter, "linkedin": memberprof.Linkedin, "website": memberprof.Website})
+		query.UpdateColumns(map[string]interface{}{"member_id": memberprof.MemberId, "profile_name": memberprof.ProfileName, "profile_slug": memberprof.ProfileSlug, "member_details": memberprof.MemberDetails, "company_name": memberprof.CompanyName, "company_logo": memberprof.CompanyLogo, "company_location": memberprof.CompanyLocation, "about": memberprof.About, "seo_title": memberprof.SeoTitle, "seo_description": memberprof.SeoDescription, "seo_keyword": memberprof.SeoKeyword, "profile_page": memberprof.ProfilePage, "twitter": memberprof.Twitter, "linkedin": memberprof.Linkedin, "website": memberprof.Website, "claim_status": memberprof.ClaimStatus, "modified_by": memberprof.ModifiedBy, "modified_on": memberprof.ModifiedOn})
 
 	}
+
 	return nil
 }
 
