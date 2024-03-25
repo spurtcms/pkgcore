@@ -504,7 +504,7 @@ func (as Authstruct) AllMemberCount(DB *gorm.DB) (count int64, err error) {
 
 func (as Authstruct) NewmemberCount(DB *gorm.DB) (count int64, err error) {
 
-	if err := DB.Debug().Table("tbl_members").Where("is_deleted = 0 AND created_on >=?", time.Now().AddDate(0, 0, -10)).Count(&count).Error; err != nil {
+	if err := DB.Table("tbl_members").Where("is_deleted = 0 AND created_on >=?", time.Now().AddDate(0, 0, -10)).Count(&count).Error; err != nil {
 
 		return 0, err
 	}
@@ -517,7 +517,7 @@ func (as Authstruct) NewmemberCount(DB *gorm.DB) (count int64, err error) {
 
 func (as Authstruct) GetMemberDetails(members []TblMember, id int, DB *gorm.DB) (member []TblMember, err error) {
 
-	if err := DB.Debug().Table("tbl_members").Where("is_deleted = 0 AND member_group_id=?", id).Find(&members).Error; err != nil {
+	if err := DB.Table("tbl_members").Where("is_deleted = 0 AND member_group_id=?", id).Find(&members).Error; err != nil {
 
 		return []TblMember{}, err
 	}
@@ -529,7 +529,7 @@ func (as Authstruct) GetMemberDetails(members []TblMember, id int, DB *gorm.DB) 
 
 func (as Authstruct) UpdateMembers(members *TblMember, id []int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Table("tbl_members").Where("tbl_members.id IN ?", id).UpdateColumns(map[string]interface{}{"member_group_id": members.MemberGroupId}).Error; err != nil {
+	if err := DB.Table("tbl_members").Where("tbl_members.id IN ?", id).UpdateColumns(map[string]interface{}{"member_group_id": members.MemberGroupId}).Error; err != nil {
 
 		return err
 	}
@@ -539,7 +539,7 @@ func (as Authstruct) UpdateMembers(members *TblMember, id []int, DB *gorm.DB) er
 
 func (as Authstruct) LastLoginMembers(id int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"last_login": 1, "login_time": time.Now().UTC().Format("2006-01-02 15:04:05")}).Error; err != nil {
+	if err := DB.Table("tbl_members").Where("id=?", id).UpdateColumns(map[string]interface{}{"last_login": 1, "login_time": time.Now().UTC().Format("2006-01-02 15:04:05")}).Error; err != nil {
 
 		return err
 	}
@@ -549,7 +549,7 @@ func (as Authstruct) LastLoginMembers(id int, DB *gorm.DB) error {
 
 func (as Authstruct) ActiveMemberList(member []TblMember, limit int, DB *gorm.DB) (members []TblMember, err error) {
 
-	if err := DB.Debug().Table("tbl_members").Where("is_deleted=0 and last_login=?", 1).Find(&members).Limit(limit).Error; err != nil {
+	if err := DB.Table("tbl_members").Where("is_deleted=0 and last_login=1 AND login_time >=?", time.Now().UTC().Add(-8*time.Hour).Format("2006-01-02 15:04:05")).Find(&members).Limit(limit).Error; err != nil {
 
 		return []TblMember{}, err
 
@@ -560,7 +560,7 @@ func (as Authstruct) ActiveMemberList(member []TblMember, limit int, DB *gorm.DB
 
 func (as Authstruct) ChangeActivestatus(memberid int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"last_login": 0}).Error; err != nil {
+	if err := DB.Table("tbl_members").Where("id=?", memberid).UpdateColumns(map[string]interface{}{"last_login": 0}).Error; err != nil {
 
 		return err
 	}

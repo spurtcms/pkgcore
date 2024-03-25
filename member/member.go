@@ -1567,11 +1567,11 @@ func (M MemberAuth) StoreGraphqlMemberOtp(otp, memberid int, otp_expiry_time str
 	return nil
 }
 
-func (M MemberAuth) VerifyLoginOtp(otp int, unix int64, secretkey string) (string, error) {
+func (M MemberAuth) VerifyLoginOtp(email string,otp int, unix int64) (string, error) {
 
 	var member TblMember
 
-	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and otp =?", otp).First(&member).Error; err != nil {
+	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?",email,otp).First(&member).Error; err != nil {
 
 		return "", errors.New("invlaid otp")
 	}
@@ -1582,7 +1582,7 @@ func (M MemberAuth) VerifyLoginOtp(otp int, unix int64, secretkey string) (strin
 
 	}
 
-	token, err := CreateMemberToken(member.Id, member.MemberGroupId, secretkey)
+	token, err := CreateMemberToken(member.Id, member.MemberGroupId, M.Auth.Secret)
 
 	if err != nil {
 
