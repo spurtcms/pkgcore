@@ -421,20 +421,20 @@ func (a Memberauth) GetGroupData() (membergroup []TblMemberGroup, err error) {
 }
 
 // Create Member
-func (a Memberauth) CreateMember(Mc MemberCreation) error {
+func (a Memberauth) CreateMember(Mc MemberCreation) (TblMember, error) {
 
 	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
 	if checkerr != nil {
 
-		return checkerr
+		return TblMember{}, checkerr
 	}
 
 	check, err := a.Authority.IsGranted("Member", auth.Create)
 
 	if err != nil {
 
-		return err
+		return TblMember{}, err
 	}
 
 	if check {
@@ -479,15 +479,15 @@ func (a Memberauth) CreateMember(Mc MemberCreation) error {
 
 		if err != nil {
 
-			return err
+			return TblMember{}, err
 		}
+
+		return member, nil
 
 	} else {
 
-		return errors.New("not authorized")
+		return TblMember{},errors.New("not authorized")
 	}
-
-	return nil
 
 }
 
@@ -1567,11 +1567,11 @@ func (M MemberAuth) StoreGraphqlMemberOtp(otp, memberid int, otp_expiry_time str
 	return nil
 }
 
-func (M MemberAuth) VerifyLoginOtp(email string,otp int, unix int64) (string, error) {
+func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (string, error) {
 
 	var member TblMember
 
-	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?",email,otp).First(&member).Error; err != nil {
+	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?", email, otp).First(&member).Error; err != nil {
 
 		return "", errors.New("invlaid otp")
 	}

@@ -286,7 +286,7 @@ func (as Authstruct) GetAllModules(mod *[]TblModule, limit, offset, id int, filt
 /**/
 func (as Authstruct) GetAllParentModules1(mod *[]TblModule, DB *gorm.DB) (err error) {
 
-	if err := DB.Model(TblModule{}).Where("parent_id=0 and default_module=0").Find(&mod).Error; err != nil {
+	if err := DB.Model(TblModule{}).Where("parent_id=0").Find(&mod).Error; err != nil {
 
 		return err
 	}
