@@ -1567,18 +1567,18 @@ func (M MemberAuth) StoreGraphqlMemberOtp(otp, memberid int, otp_expiry_time str
 	return nil
 }
 
-func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (string, error) {
+func (M MemberAuth) VerifyLoginOtp(email string,otp int, unix int64) (TblMember,string, error) {
 
 	var member TblMember
 
-	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?", email, otp).First(&member).Error; err != nil {
+	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?",email,otp).First(&member).Error; err != nil {
 
-		return "", errors.New("invlaid otp")
+		return TblMember{},"", errors.New("invlaid otp")
 	}
 
 	if member.OtpExpiry.Unix() < unix {
 
-		return "", fmt.Errorf("otp expired")
+		return TblMember{},"", fmt.Errorf("otp expired")
 
 	}
 
@@ -1586,16 +1586,16 @@ func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (string, e
 
 	if err != nil {
 
-		return "", err
+		return TblMember{},"", err
 	}
 
 	err = AS.LastLoginMembers(member.Id, M.Auth.DB)
 
 	if err != nil {
 
-		return "", err
+		return TblMember{},"", err
 	}
 
-	return token, nil
+	return member,token, nil
 
 }
