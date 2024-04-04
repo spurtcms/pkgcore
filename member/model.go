@@ -88,11 +88,12 @@ type MemberGroupCreation struct {
 }
 
 type Filter struct {
-	Keyword  string
-	Category string
-	Status   string
-	FromDate string
-	ToDate   string
+	Keyword   string
+	Category  string
+	Status    string
+	FromDate  string
+	ToDate    string
+	FirstName string
 }
 
 type TblMemberProfile struct {
@@ -199,6 +200,13 @@ func (as Authstruct) MembersList(member []TblMember, limit int, offset int, filt
 		query = query.Where("(LOWER(TRIM(tbl_members.first_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_members.last_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_member_groups.name)) ILIKE LOWER(TRIM(?)))"+" AND tbl_members.is_deleted=0"+" AND tbl_member_groups.is_deleted=0", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%")
 
 	}
+
+	if filter.FirstName != "" {
+
+		query = query.Debug().Where("LOWER(TRIM(tbl_members.first_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_members.last_name)) ILIKE LOWER(TRIM(?))", "%"+filter.FirstName+"%", "%"+filter.FirstName+"%")
+
+	}
+
 	if flag {
 
 		query.Find(&member)
