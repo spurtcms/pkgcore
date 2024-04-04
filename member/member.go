@@ -1029,15 +1029,31 @@ func CreateMemberToken(userid, roleid int, secretkey string) (string, error) {
 /*Member login*/
 func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string) (string, error) {
 
-	username := memlogin.Emailid
+	mailid := memlogin.Emailid
+
+	username := memlogin.Username
 
 	password := memlogin.Password
 
 	var member TblMember
 
-	if err := db.Table("tbl_members").Where("email = ? and is_deleted=0", username).First(&member).Error; err != nil {
+	if username != "" {
 
-		return "", errors.New("your email not registered")
+		if err := db.Debug().Table("tbl_members").Where("username = ? and is_deleted=0", username).First(&member).Error; err != nil {
+
+			return "", errors.New("your username not registered")
+
+		}
+
+	}
+
+	if mailid != "" {
+
+		if err := db.Debug().Table("tbl_members").Where("email = ? and is_deleted=0", mailid).First(&member).Error; err != nil {
+
+			return "", errors.New("your email not registered")
+
+		}
 
 	}
 
@@ -1066,7 +1082,6 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 	return token, nil
 
 }
-
 // verify token
 func VerifyToken(token string, secret string) (memberid, groupid int, err error) {
 	Claims := jwt.MapClaims{}

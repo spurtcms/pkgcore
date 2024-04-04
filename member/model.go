@@ -55,6 +55,7 @@ type TblMemberGroup struct {
 type MemberLogin struct {
 	Emailid  string
 	Password string
+	Username string
 }
 
 type MemberCreation struct {
