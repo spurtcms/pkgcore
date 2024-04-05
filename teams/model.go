@@ -41,11 +41,12 @@ type TblUser struct {
 }
 
 type Filters struct {
-	Keyword  string
-	Category string
-	Status   string
-	FromDate string
-	ToDate   string
+	Keyword   string
+	Category  string
+	Status    string
+	FromDate  string
+	ToDate    string
+	FirstName string
 }
 
 type TeamCreate struct {
@@ -87,6 +88,12 @@ func (t Team) GetUsersList(users *[]TblUser, offset, limit int, filter Filters, 
 			Or("LOWER(TRIM(tbl_users.last_name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
 			Or("LOWER(TRIM(tbl_roles.name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%").
 			Or("LOWER(TRIM(tbl_users.username)) ILIKE LOWER(TRIM(?)))", "%"+filter.Keyword+"%")
+
+	}
+
+	if filter.FirstName != "" {
+
+		query = query.Debug().Where("LOWER(TRIM(tbl_users.first_name)) ILIKE LOWER(TRIM(?))"+" OR LOWER(TRIM(tbl_users.last_name)) ILIKE LOWER(TRIM(?))", "%"+filter.FirstName+"%", "%"+filter.FirstName+"%")
 
 	}
 
