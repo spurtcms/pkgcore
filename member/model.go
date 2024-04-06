@@ -80,6 +80,7 @@ type MemberCreation struct {
 	Website          string
 	Twitter          string
 	ClaimStatus      int
+	ProfileSlug      string
 }
 
 type MemberGroupCreation struct {

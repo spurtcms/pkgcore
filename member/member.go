@@ -477,16 +477,50 @@ func (a Memberauth) CreateMember(Mc MemberCreation) (TblMember, error) {
 
 		err := AS.MemberCreate(&member, a.Authority.DB)
 
+
 		if err != nil {
 
 			return TblMember{}, err
 		}
 
+		var memberprof TblMemberProfile
+
+		memberprof.MemberId = member.Id
+
+		memberprof.Id = Mc.ProfileId
+
+		memberprof.CompanyName = Mc.CompanyName
+
+		memberprof.CompanyLocation = Mc.CompanyLocation
+
+		memberprof.CompanyLogo = Mc.CompanyLogo
+
+		memberprof.ProfileName = Mc.ProfileName
+
+		memberprof.ProfileSlug = Mc.ProfileSlug
+
+		memberprof.About = Mc.About
+
+		memberprof.Linkedin = Mc.LinkedIn
+
+		memberprof.Twitter = Mc.Twitter
+
+		memberprof.Website = Mc.Website
+
+		memberprof.ClaimStatus = Mc.ClaimStatus
+
+		memberprof.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		memberprof.CreatedBy = userid
+
+		AS.UpdateMemberProfile(&memberprof, a.Authority.DB)
+
+		
 		return member, nil
 
 	} else {
 
-		return TblMember{},errors.New("not authorized")
+		return TblMember{}, errors.New("not authorized")
 	}
 
 }
@@ -577,7 +611,7 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 			memberprof.ProfileName = Mc.ProfileName
 
-			memberprof.ProfilePage = Mc.ProfilePage
+			memberprof.ProfileSlug = Mc.ProfileSlug
 
 			memberprof.About = Mc.About
 
@@ -617,7 +651,7 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 			memberprof.ProfileName = Mc.ProfileName
 
-			memberprof.ProfilePage = Mc.ProfilePage
+			memberprof.ProfileSlug = Mc.ProfileSlug
 
 			memberprof.About = Mc.About
 
