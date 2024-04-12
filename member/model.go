@@ -619,3 +619,21 @@ func (M MemberAuth) GetAdminDetails(ChannelId int) (user auth.TblUser, err error
 
 	return user, nil
 }
+
+// Check Email is already exists
+func (AS Authstruct) CheckUsernameInMember(member *TblMember, username string, userid int, DB *gorm.DB) error {
+
+	if userid == 0 {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and is_deleted=0", username).First(&member).Error; err != nil {
+
+			return err
+		}
+	} else {
+		if err := DB.Model(TblMember{}).Where("LOWER(TRIM(username))=LOWER(TRIM(?)) and id not in (?) and is_deleted = 0 ", username, userid).First(&member).Error; err != nil {
+
+			return err
+		}
+	}
+
+	return nil
+}

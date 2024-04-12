@@ -1283,7 +1283,7 @@ func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
 func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) {
 
 	var member TblMember
-	
+
 	Pass := hashingPassword(MemC.Password)
 
 	member.FirstName = MemC.FirstName
@@ -1598,7 +1598,6 @@ func (M MemberAuth) StoreGraphqlMemberOtp(otp, memberid int, otp_expiry_time str
 	return nil
 }
 
-
 func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (TblMember, string, error) {
 
 	var member TblMember
@@ -1632,3 +1631,17 @@ func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (TblMember
 
 }
 
+// Check Username is already exits or not
+func (a MemberAuth) CheckUsernameInMember(id int, username string) (TblMember, bool, error) {
+
+	var member TblMember
+
+	err := AS.CheckUsernameInMember(&member, username, id, a.Auth.DB)
+
+	if err != nil {
+
+		return TblMember{}, false, err
+	}
+
+	return member, true, nil
+}
