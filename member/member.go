@@ -477,7 +477,6 @@ func (a Memberauth) CreateMember(Mc MemberCreation) (TblMember, error) {
 
 		err := AS.MemberCreate(&member, a.Authority.DB)
 
-
 		if err != nil {
 
 			return TblMember{}, err
@@ -515,7 +514,6 @@ func (a Memberauth) CreateMember(Mc MemberCreation) (TblMember, error) {
 
 		AS.UpdateMemberProfile(&memberprof, a.Authority.DB)
 
-		
 		return member, nil
 
 	} else {
@@ -1116,6 +1114,7 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 	return token, nil
 
 }
+
 // verify token
 func VerifyToken(token string, secret string) (memberid, groupid int, err error) {
 	Claims := jwt.MapClaims{}
@@ -1283,26 +1282,9 @@ func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
 // register member
 func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) {
 
-	if MemC.FirstName == "" {
-
-		return false, errors.New("firstname is empty can't register")
-
-	} else if MemC.Email == "" {
-
-		return false, errors.New("email is empty can't register")
-
-	} else if MemC.MobileNo == "" {
-
-		return false, errors.New("mobile number is empty can't register")
-
-	} else if MemC.Password == "" {
-
-		return false, errors.New("password is empty can't register")
-	}
-
-	Pass := hashingPassword(MemC.Password)
-
 	var member TblMember
+	
+	Pass := hashingPassword(MemC.Password)
 
 	member.FirstName = MemC.FirstName
 
@@ -1616,18 +1598,19 @@ func (M MemberAuth) StoreGraphqlMemberOtp(otp, memberid int, otp_expiry_time str
 	return nil
 }
 
-func (M MemberAuth) VerifyLoginOtp(email string,otp int, unix int64) (TblMember,string, error) {
+
+func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (TblMember, string, error) {
 
 	var member TblMember
 
-	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?",email,otp).First(&member).Error; err != nil {
+	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?", email, otp).First(&member).Error; err != nil {
 
-		return TblMember{},"", errors.New("invlaid otp")
+		return TblMember{}, "", errors.New("invlaid otp")
 	}
 
 	if member.OtpExpiry.Unix() < unix {
 
-		return TblMember{},"", fmt.Errorf("otp expired")
+		return TblMember{}, "", fmt.Errorf("otp expired")
 
 	}
 
@@ -1635,16 +1618,17 @@ func (M MemberAuth) VerifyLoginOtp(email string,otp int, unix int64) (TblMember,
 
 	if err != nil {
 
-		return TblMember{},"", err
+		return TblMember{}, "", err
 	}
 
 	err = AS.LastLoginMembers(member.Id, M.Auth.DB)
 
 	if err != nil {
 
-		return TblMember{},"", err
+		return TblMember{}, "", err
 	}
 
-	return member,token, nil
+	return member, token, nil
 
 }
+

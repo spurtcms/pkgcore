@@ -18,10 +18,12 @@ type Authorization struct {
 	Token  string
 	Secret string
 }
+
 /*this struct holds dbconnection ,token*/
 type Role struct {
 	Auth Authorization
 }
+
 /*this struct holds dbconnection ,token*/
 type PermissionAu struct {
 	Auth Authorization
@@ -885,6 +887,42 @@ func (a Authorization) IsGranted(modulename string, permisison Action) (bool, er
 
 	return true, nil
 
+}
+
+func VerifyTokenWithExpiryTime(token string, secret string, currentTime int64) (int, int, error) {
+
+	Claims := jwt.MapClaims{}
+
+	tkn, err := jwt.ParseWithClaims(token, Claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			fmt.Println(err)
+			return 0, 0, errors.New("invalid token")
+		}
+
+		return 0, 0, errors.New(err.Error())
+	}
+
+	if !tkn.Valid {
+		fmt.Println(tkn)
+		return 0, 0, errors.New("invalid token")
+	}
+
+	expiryTime := Claims["expiry_time"]
+
+	if currentTime > int64(expiryTime.(float64)) {
+
+		return 0, 0, errors.New("token expired")
+	}
+
+	usrid := Claims["member_id"]
+
+	rolid := Claims["group_id"]
+
+	return int(usrid.(float64)), int(rolid.(float64)), nil
 }
 
 // Set Difference: A - B
