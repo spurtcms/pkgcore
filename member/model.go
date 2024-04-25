@@ -133,7 +133,9 @@ func (as Authstruct) MemberGroupList(membergroup []TblMemberGroup, limit int, of
 
 	if filter.Keyword != "" {
 
-		query = query.Where("LOWER(TRIM(name)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%")
+		query = query.Where("LOWER(TRIM(name)) ILIKE LOWER(TRIM(?)) OR LOWER(TRIM(description)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%")
+
+
 
 	}
 
