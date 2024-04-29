@@ -1645,3 +1645,22 @@ func (a MemberAuth) CheckUsernameInMember(id int, username string) (TblMember, b
 
 	return member, true, nil
 }
+
+func (M Memberauth) GenerateMemberToken(memberid int,secretKey string)(token string, err error){
+
+	var MemberDetails TblMember
+
+	if err := AS. GetMemberDetailsByMemberId(MemberDetails,memberid,M.Authority.DB);err!=nil{
+
+		return "",err
+	}
+
+	token, tokenerr := CreateMemberToken(MemberDetails.Id,MemberDetails.MemberGroupId,secretKey)
+
+	if tokenerr!=nil{
+
+		return "",err
+	}
+
+	return token,nil
+}

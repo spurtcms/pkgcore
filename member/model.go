@@ -639,3 +639,14 @@ func (AS Authstruct) CheckUsernameInMember(member *TblMember, username string, u
 
 	return nil
 }
+
+
+func (AS Authstruct) GetMemberDetailsByMemberId(MemberDetails TblMember, memberId int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblMember{}).Where("is_deleted=0 and id = ?",memberId).First(&MemberDetails).Error;err!=nil{
+
+		return err
+	}
+
+	return nil
+}
