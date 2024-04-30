@@ -1650,7 +1650,7 @@ func (M Memberauth) GenerateMemberToken(memberid int,secretKey string)(token str
 
 	var MemberDetails TblMember
 
-	if err := AS. GetMemberDetailsByMemberId(MemberDetails,memberid,M.Authority.DB);err!=nil{
+	if err := AS.GetMemberDetailsByMemberId(&MemberDetails,memberid,M.Authority.DB);err!=nil{
 
 		return "",err
 	}
