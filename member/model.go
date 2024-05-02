@@ -50,7 +50,9 @@ type TblMemberGroup struct {
 	CreatedBy   int
 	ModifiedOn  time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy  int       `gorm:"DEFAULT:NULL"`
-	DateString  string    `gorm:"-"`
+	DeletedOn   time.Time
+	DeletedBy   int
+	DateString  string `gorm:"-"`
 }
 
 type MemberLogin struct {
@@ -134,8 +136,6 @@ func (as Authstruct) MemberGroupList(membergroup []TblMemberGroup, limit int, of
 	if filter.Keyword != "" {
 
 		query = query.Where("LOWER(TRIM(name)) ILIKE LOWER(TRIM(?)) OR LOWER(TRIM(description)) ILIKE LOWER(TRIM(?))", "%"+filter.Keyword+"%", "%"+filter.Keyword+"%")
-
-
 
 	}
 
@@ -640,10 +640,28 @@ func (AS Authstruct) CheckUsernameInMember(member *TblMember, username string, u
 	return nil
 }
 
-
 func (AS Authstruct) GetMemberDetailsByMemberId(MemberDetails *TblMember, memberId int, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMember{}).Where("is_deleted=0 and id = ?",memberId).First(&MemberDetails).Error;err!=nil{
+	if err := DB.Model(TblMember{}).Where("is_deleted=0 and id = ?", memberId).First(&MemberDetails).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+
+func (as Authstruct) MultiSelectedMemberDeletegroup(member *TblMemberGroup, id []int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Model(&member).Where("id in (?)", id).UpdateColumns(map[string]interface{}{"is_deleted": member.IsDeleted, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+
+		return err
+
+	}
+	return nil
+}
+func (As Authstruct) MultiMemberGroupIsActive(memberstatus *TblMemberGroup, memberid []int, status int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Model(TblMemberGroup{}).Where("id in (?)", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
 
 		return err
 	}

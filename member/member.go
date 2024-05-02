@@ -1664,3 +1664,79 @@ func (M Memberauth) GenerateMemberToken(memberid int,secretKey string)(token str
 
 	return token,nil
 }
+
+// MULTI SELECT MEMBERGROUP DELETE FUNCTION//
+func (a Memberauth) MultiSelectedMemberDeletegroup(Memberid []int) (bool, error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member Group", auth.Delete)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var member TblMemberGroup
+
+		member.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		member.DeletedBy = userid
+
+		member.IsDeleted = 1
+
+		err := AS.MultiSelectedMemberDeletegroup(&member, Memberid, a.Authority.DB)
+
+		if err != nil {
+
+			return false, err
+		}
+
+	} else {
+
+		return false, errors.New("not authorized")
+
+	}
+
+	return true, nil
+
+}
+
+func (a Memberauth) MultiSelectMembersgroupStatus(memberid []int, status int) (bool, error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member Group", auth.Read)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var memberstatus TblMemberGroup
+
+		memberstatus.ModifiedBy = userid
+
+		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		AS.MultiMemberGroupIsActive(&memberstatus, memberid, status, a.Authority.DB)
+
+		return true, nil
+	}
+	return false, errors.New("not authorized")
+
+}
