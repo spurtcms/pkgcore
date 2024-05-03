@@ -1740,3 +1740,111 @@ func (a Memberauth) MultiSelectMembersgroupStatus(memberid []int, status int) (b
 	return false, errors.New("not authorized")
 
 }
+
+// member is_active
+func (a Memberauth) MemberStatus(memberid int, status int) (bool, error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member", auth.Read)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var memberstatus TblMember
+
+		memberstatus.ModifiedBy = userid
+
+		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		AS.MemberStatus(memberstatus, memberid, status, a.Authority.DB)
+
+		return true, nil
+	}
+	return false, errors.New("not authorized")
+
+}
+// MULTI SELECT MEMBERs DELETE FUNCTION//
+func (a Memberauth) MultiSelectedMemberDelete(Memberid []int) (bool, error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member Group", auth.Delete)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var member TblMember
+
+		member.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		member.DeletedBy = userid
+
+		member.IsDeleted = 1
+
+		err := AS.MultiSelectedMemberDelete(&member, Memberid, a.Authority.DB)
+
+		if err != nil {
+
+			return false, err
+		}
+
+	} else {
+
+		return false, errors.New("not authorized")
+
+	}
+
+	return true, nil
+
+}
+
+func (a Memberauth) MultiSelectMembersStatus(memberid []int, status int) (bool, error) {
+
+	userid, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Member Group", auth.Read)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+
+		var memberstatus TblMember
+
+		memberstatus.ModifiedBy = userid
+
+		memberstatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		AS.MultiMemberIsActive(&memberstatus, memberid, status, a.Authority.DB)
+
+		return true, nil
+	}
+	return false, errors.New("not authorized")
+
+}

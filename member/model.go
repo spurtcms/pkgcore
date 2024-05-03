@@ -668,3 +668,32 @@ func (As Authstruct) MultiMemberGroupIsActive(memberstatus *TblMemberGroup, memb
 
 	return nil
 }
+// Member  IsActive Function
+func (As Authstruct) MemberStatus(memberstatus TblMember, memberid int, status int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblMember{}).Where("id=?", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
+func (as Authstruct) MultiSelectedMemberDelete(member *TblMember, id []int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Model(&member).Where("id in (?)", id).UpdateColumns(map[string]interface{}{"is_deleted": member.IsDeleted, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+
+		return err
+
+	}
+	return nil
+}
+
+func (As Authstruct) MultiMemberIsActive(memberstatus *TblMember, memberid []int, status int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Model(TblMember{}).Where("id in (?)", memberid).UpdateColumns(map[string]interface{}{"is_active": status, "modified_by": memberstatus.ModifiedBy, "modified_on": memberstatus.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}
