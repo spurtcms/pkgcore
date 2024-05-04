@@ -37,6 +37,7 @@ type TblMember struct {
 	ModifiedDate     string    `gorm:"-"`
 	NameString       string    `gorm:"-"`
 	LoginTime        time.Time `gorm:"DEFAULT:NULL"`
+	Token            string    `gorm:"-"`
 }
 
 type TblMemberGroup struct {

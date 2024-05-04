@@ -1581,7 +1581,7 @@ func (M MemberAuth) GraphqlMemberLogin(email string) (TblMember, error) {
 
 	if err := M.Auth.DB.Model(TblMember{}).Where("email = ? and is_deleted=0", email).First(&member).Error; err != nil {
 
-		return TblMember{}, errors.New("your email not registered")
+		return TblMember{}, err
 
 	}
 
@@ -1598,19 +1598,18 @@ func (M MemberAuth) StoreGraphqlMemberOtp(otp, memberid int, otp_expiry_time str
 	return nil
 }
 
-func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (TblMember, string, error) {
+func (M MemberAuth) VerifyLoginOtp(email string, otp int, current_time time.Time) (TblMember, string, error) {
 
 	var member TblMember
 
 	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?", email, otp).First(&member).Error; err != nil {
 
-		return TblMember{}, "", errors.New("invlaid otp")
+		return TblMember{}, "", errors.New("invalid otp")
 	}
 
-	if member.OtpExpiry.Unix() < unix {
+	if !member.OtpExpiry.After(current_time){
 
 		return TblMember{}, "", fmt.Errorf("otp expired")
-
 	}
 
 	token, err := CreateMemberToken(member.Id, member.MemberGroupId, M.Auth.Secret)
@@ -1630,7 +1629,6 @@ func (M MemberAuth) VerifyLoginOtp(email string, otp int, unix int64) (TblMember
 	return member, token, nil
 
 }
-
 // Check Username is already exits or not
 func (a MemberAuth) CheckUsernameInMember(id int, username string) (TblMember, bool, error) {
 
