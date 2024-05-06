@@ -426,3 +426,32 @@ func (as Authstruct) GetPermissionId(perm *[]TblRolePermission, roleid int, DB *
 
 	return nil
 }
+
+func (as Authstruct) MultiSelectRoleDelete(role *TblRole, id []int, DB *gorm.DB) error {
+
+	if err := DB.Model(TblRole{}).Where("id in (?)", id).Update("is_deleted", 1).Error; err != nil {
+
+		return err
+
+	}
+
+	return nil
+}
+func (as Authstruct) MultiSelectDeleteRolePermissionById(roleper *[]TblRolePermission, roleid []int, DB *gorm.DB) error {
+
+	if err := DB.Where("role_id in (?)", roleid).Delete(&roleper).Error; err != nil {
+
+		return err
+
+	}
+	return nil
+}
+func (as Authstruct) MultiSelectRoleIsActive(role *TblRole, id []int, val int, DB *gorm.DB) error {
+
+	if err := DB.Table("tbl_roles").Where("id in (?)", id).UpdateColumns(map[string]interface{}{"is_active": val, "modified_by": role.ModifiedBy, "modified_on": role.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+}

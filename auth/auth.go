@@ -940,3 +940,68 @@ func Difference(a, b []int) (diff []int) {
 	}
 	return
 }
+
+
+func (a Role) MultiSelectDeleteRole(roleid []int) (bool, error) {
+
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return false, checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		var role TblRole
+
+		err1 := AS.MultiSelectRoleDelete(&role, roleid, a.Auth.DB)
+
+		var permissions []TblRolePermission
+
+		AS.MultiSelectDeleteRolePermissionById(&permissions, roleid, a.Auth.DB)
+
+		if err1 != nil {
+
+			return false, err1
+		}
+
+		return true, nil
+
+	}
+	return false, errors.New("not authorized")
+}
+
+func (a Role) MultiSelectRoleStatus(roleid []int, status int) (err error) {
+
+	userid, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		var rolestatus TblRole
+
+		rolestatus.ModifiedBy = userid
+
+		rolestatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		err1 := AS.MultiSelectRoleIsActive(&rolestatus, roleid, status, a.Auth.DB)
+
+		if err1 != nil {
+
+			return err1
+		}
+
+		return nil
+
+	}
+	return errors.New("not authorized")
+}
