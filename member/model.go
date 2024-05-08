@@ -85,6 +85,9 @@ type MemberCreation struct {
 	Twitter          string
 	ClaimStatus      int
 	ProfileSlug      string
+	SeoTitle         string
+	SeoKeyword       string
+	SeoDescription   string
 }
 
 type MemberGroupCreation struct {

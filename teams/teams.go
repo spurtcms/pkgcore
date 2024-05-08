@@ -662,3 +662,130 @@ func (a TeamAuth) LastLoginActivity() (err error) {
 
 	return nil
 }
+
+func (a TeamAuth) DeleteMultipleUser(usersId []int) error {
+
+	deletingId, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+		return checkerr
+	}
+
+	check, err := a.Authority.IsGranted("User", auth.Delete)
+
+	if err != nil {
+
+		return err
+	}
+
+	if check {
+
+		var user TblUser
+		
+		user.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+		
+		user.DeletedBy = deletingId
+		
+		user.IsDeleted = 1
+
+		err := TM.DeleteMultipleUser(&user, usersId, a.Authority.DB)
+
+		if err != nil {
+
+			return err
+		}
+
+	} else {
+
+		return errors.New("not authorized to delete a user")
+	}
+
+	return nil
+}
+
+// change user Access for multiple user
+
+func (a TeamAuth) ChangeAccess(userIds []int, status int) error {
+
+	changingId, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, err := a.Authority.IsGranted("User", auth.Delete)
+
+	if err != nil {
+
+		return err
+	}
+
+	if check {
+
+		var user TblUser
+		
+		user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+		
+		user.ModifiedBy = changingId
+		
+		user.DataAccess = status
+
+		err := TM.ChangeAccess(&user, userIds, a.Authority.DB)
+		
+		if err != nil {
+
+			return err
+		}
+
+	} else {
+
+		return errors.New("not authorized to change access to a user")
+
+	}
+
+	return nil
+}
+
+// change active Status for multiple users
+
+func (a TeamAuth) SelectedUserStatusChange(userIds []int, activeStatus int) error {
+
+	changingId, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return checkerr
+	}
+
+	check, err := a.Authority.IsGranted("User", auth.Delete)
+
+	if err != nil {
+
+		return err
+	}
+
+	if check {
+
+		var userActiveStatus TblUser
+
+		userActiveStatus.ModifiedBy = changingId
+
+		userActiveStatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		userActiveStatus.IsActive = activeStatus
+
+		err := TM.SelectedUserStatusChange(&userActiveStatus, userIds, a.Authority.DB)
+		
+		if err != nil {
+			
+			return err
+		}
+
+
+		return nil
+
+	}
+
+	return errors.New("not authorized")
+}

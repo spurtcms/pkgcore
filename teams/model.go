@@ -318,3 +318,48 @@ func (t Team) Lastlogin(id int, log_time time.Time, DB *gorm.DB) error {
 	return nil
 
 }
+
+// Delete Multiple User Functionality
+
+func (t Team) DeleteMultipleUser(user *TblUser, usersId []int, DB *gorm.DB) error {
+
+	if err := DB.Model(&TblUser{}).Where("id IN (?)", usersId).Updates(map[string]interface{}{"is_deleted": user.IsDeleted, "deleted_on": user.DeletedOn, "deleted_by": user.DeletedBy}).Error; err != nil {
+		// TblUser{IsDeleted: user.IsDeleted, DeletedOn: user.DeletedOn, DeletedBy: user.DeletedBy}
+
+		return err
+
+	}
+
+	return nil
+}
+
+func (t Team) ChangeAccess(user *TblUser, userIds []int, DB *gorm.DB) error {
+
+	result := DB.Debug().Model(&user).Where("id IN (?)", userIds).UpdateColumns(map[string]interface{}{"modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "data_access": user.DataAccess})
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (t Team) ChangeActiveUser(user *TblUser, userId int, DB *gorm.DB) error {
+
+	result := DB.Debug().Model(&user).Where("id = ?", userId).UpdateColumns(map[string]interface{}{"modified_on": user.ModifiedOn, "modified_by": user.ModifiedBy, "is_active": user.IsActive})
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (t Team) SelectedUserStatusChange(userStatus *TblUser, userIds []int, DB *gorm.DB) error {
+
+	if err := DB.Debug().Model(TblUser{}).Where("id in (?)", userIds).UpdateColumns(map[string]interface{}{"is_active": userStatus.IsActive, "modified_by": userStatus.ModifiedBy, "modified_on": userStatus.ModifiedOn}).Error; err != nil {
+
+		return err
+	}
+
+	return nil
+
+}

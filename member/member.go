@@ -625,6 +625,12 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 			memberprof.CreatedBy = userid
 
+			memberprof.SeoTitle = Mc.SeoTitle
+
+			memberprof.SeoKeyword = Mc.SeoKeyword
+
+			memberprof.SeoDescription = Mc.SeoDescription
+
 			err2 := AS.UpdateMemberProfile(&memberprof, a.Authority.DB)
 
 			if err2 != nil {
@@ -665,6 +671,12 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 			memberprof.ModifiedBy = userid
 
+			memberprof.SeoTitle = Mc.SeoTitle
+
+			memberprof.SeoKeyword = Mc.SeoKeyword
+
+			memberprof.SeoDescription = Mc.SeoDescription
+
 			err2 := AS.MemberprofileUpdate(&memberprof, memberprofile.Id, a.Authority.DB)
 
 			if err2 != nil {
@@ -681,6 +693,7 @@ func (a Memberauth) UpdateMember(Mc MemberCreation, id int) error {
 
 	return nil
 }
+
 
 // delete member
 func (a Memberauth) DeleteMember(id int) error {
