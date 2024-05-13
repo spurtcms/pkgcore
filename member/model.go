@@ -310,14 +310,26 @@ func (As Authstruct) GetMemberProfileByMemberId(memberprof *TblMemberProfile, id
 }
 
 // Delete Member
+// Delete Member
 func (as Authstruct) DeleteMember(member *TblMember, id int, DB *gorm.DB) error {
 
-	if err := DB.Model(&member).Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+	return DB.Transaction(func(tx *gorm.DB) error {
 
-		return err
+		if err := DB.Model(&member).Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
 
-	}
-	return nil
+			return err
+
+		}
+
+		if err := DB.Table("tbl_member_profiles").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+
+			return err
+
+		}
+
+		return nil
+
+	})
 }
 
 // Check Email is already exists
@@ -672,6 +684,7 @@ func (As Authstruct) MultiMemberGroupIsActive(memberstatus *TblMemberGroup, memb
 
 	return nil
 }
+
 // Member  IsActive Function
 func (As Authstruct) MemberStatus(memberstatus TblMember, memberid int, status int, DB *gorm.DB) error {
 
@@ -682,14 +695,27 @@ func (As Authstruct) MemberStatus(memberstatus TblMember, memberid int, status i
 
 	return nil
 }
+
+// MultiSelectedMemberDelete
 func (as Authstruct) MultiSelectedMemberDelete(member *TblMember, id []int, DB *gorm.DB) error {
 
-	if err := DB.Debug().Model(&member).Where("id in (?)", id).UpdateColumns(map[string]interface{}{"is_deleted": member.IsDeleted, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+	return DB.Transaction(func(tx *gorm.DB) error {
 
-		return err
+		if err := DB.Model(&member).Where("id in (?)", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
 
-	}
-	return nil
+			return err
+
+		}
+
+		if err := DB.Table("tbl_member_profiles").Where("id in (?)", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+
+			return err
+
+		}
+
+		return nil
+
+	})
 }
 
 func (As Authstruct) MultiMemberIsActive(memberstatus *TblMember, memberid []int, status int, DB *gorm.DB) error {
