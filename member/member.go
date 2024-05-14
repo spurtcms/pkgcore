@@ -816,7 +816,7 @@ func (a Memberauth) CheckNumberInMember(id int, number string) (bool, error) {
 }
 
 // Check Number is already exits or not
-func (a Memberauth) CheckProfileNameInMember(id int, number string) (bool, error) {
+func (a Memberauth) CheckProfileSlugInMember(id int, number string) (bool, error) {
 
 	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
 
@@ -836,7 +836,7 @@ func (a Memberauth) CheckProfileNameInMember(id int, number string) (bool, error
 
 		var memberprof TblMemberProfile
 
-		err := AS.CheckProfileNameInMember(&memberprof, number, id, a.Authority.DB)
+		err := AS.CheckProfileSlugInMember(&memberprof, number, id, a.Authority.DB)
 
 		if err != nil {
 			return false, err

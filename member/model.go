@@ -369,9 +369,16 @@ func (As Authstruct) CheckNumberInMember(member *TblMember, number string, useri
 	return nil
 }
 
-func (As Authstruct) CheckProfileNameInMember(member *TblMemberProfile, name string, memberid int, DB *gorm.DB) error {
+func (As Authstruct) CheckProfileSlugInMember(member *TblMemberProfile, name string, memberid int, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMemberProfile{}).Where("profile_name = ? and member_id not in (?) and is_deleted=0", name, memberid).First(&member).Error; err != nil {
+	query := DB.Model(TblMemberProfile{}).Where("profile_slug = ? and is_deleted=0", name)
+
+	if memberid > 0 {
+
+		query = query.Where("member_id not in (?)", memberid)
+	}
+
+	if err := query.First(&member).Error; err != nil {
 
 		return err
 	}
