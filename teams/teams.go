@@ -681,11 +681,11 @@ func (a TeamAuth) DeleteMultipleUser(usersId []int) error {
 	if check {
 
 		var user TblUser
-		
+
 		user.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-		
+
 		user.DeletedBy = deletingId
-		
+
 		user.IsDeleted = 1
 
 		err := TM.DeleteMultipleUser(&user, usersId, a.Authority.DB)
@@ -724,15 +724,15 @@ func (a TeamAuth) ChangeAccess(userIds []int, status int) error {
 	if check {
 
 		var user TblUser
-		
+
 		user.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
-		
+
 		user.ModifiedBy = changingId
-		
+
 		user.DataAccess = status
 
 		err := TM.ChangeAccess(&user, userIds, a.Authority.DB)
-		
+
 		if err != nil {
 
 			return err
@@ -776,16 +776,47 @@ func (a TeamAuth) SelectedUserStatusChange(userIds []int, activeStatus int) erro
 		userActiveStatus.IsActive = activeStatus
 
 		err := TM.SelectedUserStatusChange(&userActiveStatus, userIds, a.Authority.DB)
-		
+
 		if err != nil {
-			
+
 			return err
 		}
-
 
 		return nil
 
 	}
 
 	return errors.New("not authorized")
+}
+
+func (a TeamAuth) ChangeActiveStatus(userId int, activeStatus int) (bool, error) {
+	changingId, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+		return false, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("User", auth.Delete)
+
+	if err != nil {
+
+		return false, err
+	}
+
+	if check {
+		var userStatus TblUser
+
+		userStatus.ModifiedBy = changingId
+
+		userStatus.ModifiedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
+
+		userStatus.IsActive = activeStatus
+		err := TM.ChangeActiveUser(&userStatus, userId, a.Authority.DB)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+
+	return false, errors.New("not authorized")
 }
