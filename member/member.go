@@ -1293,7 +1293,7 @@ func (M MemberAuth) GetMemberDetails() (members TblMember, err error) {
 }
 
 // register member
-func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) {
+func (M MemberAuth) MemberRegister(MemC MemberCreation) (memberDetails TblMember,check bool, err error) {
 
 	var member TblMember
 
@@ -1323,12 +1323,12 @@ func (M MemberAuth) MemberRegister(MemC MemberCreation) (check bool, err error) 
 
 	if err1 != nil {
 
-		return false, err
+		return TblMember{},false, err
 	}
 
-	return true, nil
+	return member,true, nil
 
-}
+}   
 
 // Update member
 func (M MemberAuth) MemberUpdate(MemC MemberCreation) (check bool, err error) {

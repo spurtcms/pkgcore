@@ -253,7 +253,23 @@ func (as Authstruct) GetGroupData(membergroup []TblMemberGroup, DB *gorm.DB) (me
 // Member Insert
 func (as Authstruct) MemberCreate(member *TblMember, DB *gorm.DB) error {
 
-	if err := DB.Model(TblMember{}).Create(&member).Error; err != nil {
+	err := DB.Model(TblMember{}).Transaction(func (tx *gorm.DB) error{
+
+		if err := tx.Create(&member).Error; err != nil {
+
+            return err
+        }
+
+        // Retrieve the inserted record
+        if err := tx.First(&member, member.Id).Error; err != nil {
+
+            return err
+        }
+		
+		return nil
+	})
+
+	if err != nil {
 
 		return err
 	}
