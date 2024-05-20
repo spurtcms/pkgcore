@@ -519,7 +519,7 @@ func (at AccessType) GetEntriesCountUnderChannel(count *int64, channelId int, DB
 func (at AccessType) GetChannelCount(count *int64, DB gorm.DB) error {
 
 	if err := DB.Table("tbl_channels").Distinct("tbl_channels.id").Joins("inner join tbl_channel_entries on tbl_channel_entries.channel_id = tbl_channels.id").
-		Joins("inner join tbl_channel_category on tbl_channel_category.channel_id = tbl_channels.id").
+		Joins("inner join tbl_channel_categories on tbl_channel_categories.channel_id = tbl_channels.id").
 		Where("tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channel_entries.status = 1").Count(count).Error; err != nil {
 
 		return err
