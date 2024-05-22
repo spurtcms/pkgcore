@@ -716,11 +716,15 @@ func (a Memberauth) DeleteMember(id int) error {
 
 		var member TblMember
 
+		member.Id = id
+
+		member.IsDeleted = 1
+
 		member.DeletedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		member.DeletedBy = userid
 
-		err := AS.DeleteMember(&member, id, a.Authority.DB)
+		err := AS.DeleteMember(&member, a.Authority.DB)
 
 		if err != nil {
 
@@ -735,7 +739,6 @@ func (a Memberauth) DeleteMember(id int) error {
 
 	return nil
 }
-
 // Check Email is already exits or not
 func (a Memberauth) CheckEmailInMember(id int, email string) (bool, error) {
 
@@ -1592,7 +1595,7 @@ func (M MemberAuth) GraphqlMemberLogin(email string) (TblMember, error) {
 
 	var member TblMember
 
-	if err := M.Auth.DB.Model(TblMember{}).Where("email = ? and is_deleted=0", email).First(&member).Error; err != nil {
+	if err := M.Auth.DB.Debug().Model(TblMember{}).Joins("inner join tbl_member_profiles on tbl_member_profiles.member_id = tbl_members.id").Where("tbl_members.email = ? and tbl_members.is_deleted=0 and tbl_member_profiles.is_deleted = 0 ", email).First(&member).Error; err != nil {
 
 		return TblMember{}, err
 
@@ -1615,12 +1618,17 @@ func (M MemberAuth) VerifyLoginOtp(email string, otp int, current_time time.Time
 
 	var member TblMember
 
-	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp =?", email, otp).First(&member).Error; err != nil {
+	if err := M.Auth.DB.Model(TblMember{}).Where("is_deleted = 0 and email = ? and otp = ?", email, otp).First(&member).Error; err != nil {
 
 		return TblMember{}, "", errors.New("invalid otp")
 	}
 
-	if !member.OtpExpiry.After(current_time){
+	if member.IsActive == 0 && member.Id != 0{
+
+		return TblMember{}, "",fmt.Errorf("inactive member")
+	}
+
+	if !member.OtpExpiry.After(current_time) {
 
 		return TblMember{}, "", fmt.Errorf("otp expired")
 	}

@@ -28,7 +28,7 @@ type TblMember struct {
 	ModifiedOn       time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy       int       `gorm:"DEFAULT:NULL"`
 	MemberGroupId    int
-	GroupName        string `gorm:"-:migration;<-:false"`
+	GroupName        string `gorm:"-"`
 	Password         string
 	DateString       string    `gorm:"-"`
 	Username         string    `gorm:"DEFAULT:NULL"`
@@ -253,19 +253,19 @@ func (as Authstruct) GetGroupData(membergroup []TblMemberGroup, DB *gorm.DB) (me
 // Member Insert
 func (as Authstruct) MemberCreate(member *TblMember, DB *gorm.DB) error {
 
-	err := DB.Model(TblMember{}).Transaction(func (tx *gorm.DB) error{
+	err := DB.Model(TblMember{}).Transaction(func(tx *gorm.DB) error {
 
 		if err := tx.Create(&member).Error; err != nil {
 
-            return err
-        }
+			return err
+		}
 
-        // Retrieve the inserted record
-        if err := tx.First(&member, member.Id).Error; err != nil {
+		// Retrieve the inserted record
+		if err := tx.First(&member, member.Id).Error; err != nil {
 
-            return err
-        }
-		
+			return err
+		}
+
 		return nil
 	})
 
@@ -326,18 +326,17 @@ func (As Authstruct) GetMemberProfileByMemberId(memberprof *TblMemberProfile, id
 }
 
 // Delete Member
-// Delete Member
-func (as Authstruct) DeleteMember(member *TblMember, id int, DB *gorm.DB) error {
+func (as Authstruct) DeleteMember(member *TblMember, DB *gorm.DB) error {
 
 	return DB.Transaction(func(tx *gorm.DB) error {
 
-		if err := DB.Model(&member).Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+		if err := DB.Model(&member).Where("id = ?", member.Id).UpdateColumns(map[string]interface{}{"is_deleted": member.IsDeleted, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
 
 			return err
 
 		}
 
-		if err := DB.Table("tbl_member_profiles").Where("id=?", id).UpdateColumns(map[string]interface{}{"is_deleted": 1, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
+		if err := DB.Table("tbl_member_profiles").Where("member_id = ?", member.Id).UpdateColumns(map[string]interface{}{"is_deleted": member.IsDeleted, "deleted_on": member.DeletedOn, "deleted_by": member.DeletedBy}).Error; err != nil {
 
 			return err
 

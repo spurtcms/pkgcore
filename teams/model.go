@@ -363,3 +363,13 @@ func (t Team) SelectedUserStatusChange(userStatus *TblUser, userIds []int, DB *g
 	return nil
 
 }
+
+func (t Team) GetAdminRoleUsers(roleid []int, DB *gorm.DB) (userlist []TblUser, err error) {
+
+	if err := DB.Model(TblUser{}).Where("role_id in (?)", roleid).Find(&userlist).Error; err != nil {
+
+		return []TblUser{}, err
+	}
+	return userlist, nil
+
+}

@@ -129,6 +129,11 @@ func Checklogin(Lc LoginCheck, db *gorm.DB, secretkey string) (string, int, erro
 
 	}
 
+	if user.IsActive == 0 {
+
+		return "", 0, errors.New("user disabled please contact admin")
+	}
+
 	passerr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 
 	if passerr != nil || passerr == bcrypt.ErrMismatchedHashAndPassword {
@@ -941,7 +946,6 @@ func Difference(a, b []int) (diff []int) {
 	return
 }
 
-
 func (a Role) MultiSelectDeleteRole(roleid []int) (bool, error) {
 
 	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
@@ -1004,4 +1008,27 @@ func (a Role) MultiSelectRoleStatus(roleid []int, status int) (err error) {
 
 	}
 	return errors.New("not authorized")
+}
+
+func (a Role) GetRoleByName() (tblrole []TblRole, err error) {
+
+	_, _, checkerr := VerifyToken(a.Auth.Token, a.Auth.Secret)
+
+	if checkerr != nil {
+
+		return []TblRole{}, checkerr
+	}
+
+	check, _ := a.Auth.IsGranted("Roles", CRUD)
+
+	if check {
+
+		var role []TblRole
+
+		AS.GetRoleByName(&role, a.Auth.DB)
+
+		return role, nil
+	}
+
+	return []TblRole{}, errors.New("not authorized")
 }

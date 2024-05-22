@@ -820,3 +820,30 @@ func (a TeamAuth) ChangeActiveStatus(userId int, activeStatus int) (bool, error)
 
 	return false, errors.New("not authorized")
 }
+
+
+func (a TeamAuth) GetAdminRoleUsers(roleid []int) (userlist []TblUser, err error) {
+
+	_, _, checkerr := auth.VerifyToken(a.Authority.Token, a.Authority.Secret)
+
+	if checkerr != nil {
+
+		return []TblUser{}, checkerr
+	}
+
+	check, err := a.Authority.IsGranted("Users", auth.Read)
+
+	if err != nil {
+
+		return []TblUser{}, err
+	}
+
+	if check {
+
+		userslist, _ := TM.GetAdminRoleUsers(roleid, a.Authority.DB)
+
+		return userslist, nil
+	}
+
+	return []TblUser{}, errors.New("not authorized")
+}
