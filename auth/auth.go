@@ -236,6 +236,8 @@ func (a Role) CreateRole(rolec RoleCreation) (TblRole, error) {
 
 		role.Slug = strings.ToLower(role.Name)
 
+		role.IsActive = 1
+
 		role.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
 		role.CreatedBy = userid

@@ -1105,6 +1105,11 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	}
 
+	if member.IsActive != 1{
+
+		return "",errors.New("inactive member")
+	}
+
 	passerr := bcrypt.CompareHashAndPassword([]byte(member.Password), []byte(password))
 
 	if passerr != nil || passerr == bcrypt.ErrMismatchedHashAndPassword {
@@ -1595,7 +1600,7 @@ func (M MemberAuth) GraphqlMemberLogin(email string) (TblMember, error) {
 
 	var member TblMember
 
-	if err := M.Auth.DB.Debug().Model(TblMember{}).Joins("inner join tbl_member_profiles on tbl_member_profiles.member_id = tbl_members.id").Where("tbl_members.email = ? and tbl_members.is_deleted=0 and tbl_member_profiles.is_deleted = 0 ", email).First(&member).Error; err != nil {
+	if err := M.Auth.DB.Model(TblMember{}).Joins("inner join tbl_member_profiles on tbl_member_profiles.member_id = tbl_members.id").Where("tbl_members.email = ? and tbl_members.is_deleted=0 and tbl_member_profiles.is_deleted = 0 ", email).First(&member).Error; err != nil {
 
 		return TblMember{}, err
 
