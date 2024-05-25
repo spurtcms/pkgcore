@@ -1059,7 +1059,7 @@ func (a Memberauth) GetMemberById(id int) (membergroup TblMemberGroup, err error
 }
 
 /*Create meber token*/
-func CreateMemberToken(userid, roleid int, secretkey string) (string, error) {
+func CreateMemberToken(userid, roleid int, secretkey string, loginType string) (string, error) {
 
 	atClaims := jwt.MapClaims{}
 
@@ -1068,6 +1068,8 @@ func CreateMemberToken(userid, roleid int, secretkey string) (string, error) {
 	atClaims["group_id"] = roleid
 
 	atClaims["expiry_time"] = time.Now().Add(2 * time.Hour).Unix()
+
+	atClaims["login_type"] = loginType
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 
@@ -1118,7 +1120,7 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	}
 
-	token, err := CreateMemberToken(member.Id, member.MemberGroupId, secretkey)
+	token, err := CreateMemberToken(member.Id, member.MemberGroupId, secretkey,"admin")
 
 	err1 := AS.LastLoginMembers(member.Id, M.Auth.DB)
 
@@ -1619,7 +1621,8 @@ func (M MemberAuth) StoreGraphqlMemberOtp(otp, memberid int, otp_expiry_time str
 	return nil
 }
 
-func (M MemberAuth) VerifyLoginOtp(email string, otp int, current_time time.Time) (TblMember, string, error) {
+
+func (M MemberAuth) VerifyLoginOtp(email string, otp int, current_time time.Time, loginType string) (TblMember, string, error) {
 
 	var member TblMember
 
@@ -1628,9 +1631,9 @@ func (M MemberAuth) VerifyLoginOtp(email string, otp int, current_time time.Time
 		return TblMember{}, "", errors.New("invalid otp")
 	}
 
-	if member.IsActive == 0 && member.Id != 0{
+	if member.IsActive == 0 && member.Id != 0 {
 
-		return TblMember{}, "",fmt.Errorf("inactive member")
+		return TblMember{}, "", fmt.Errorf("inactive member")
 	}
 
 	if !member.OtpExpiry.After(current_time) {
@@ -1638,7 +1641,7 @@ func (M MemberAuth) VerifyLoginOtp(email string, otp int, current_time time.Time
 		return TblMember{}, "", fmt.Errorf("otp expired")
 	}
 
-	token, err := CreateMemberToken(member.Id, member.MemberGroupId, M.Auth.Secret)
+	token, err := CreateMemberToken(member.Id, member.MemberGroupId, M.Auth.Secret, loginType)
 
 	if err != nil {
 
@@ -1655,6 +1658,7 @@ func (M MemberAuth) VerifyLoginOtp(email string, otp int, current_time time.Time
 	return member, token, nil
 
 }
+
 // Check Username is already exits or not
 func (a MemberAuth) CheckUsernameInMember(id int, username string) (TblMember, bool, error) {
 
@@ -1679,7 +1683,7 @@ func (M Memberauth) GenerateMemberToken(memberid int,secretKey string)(token str
 		return "",err
 	}
 
-	token, tokenerr := CreateMemberToken(MemberDetails.Id,MemberDetails.MemberGroupId,secretKey)
+	token, tokenerr := CreateMemberToken(MemberDetails.Id,MemberDetails.MemberGroupId,secretKey,"admin")
 
 	if tokenerr!=nil{
 

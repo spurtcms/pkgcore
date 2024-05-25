@@ -649,11 +649,11 @@ func (AS Authstruct) MemberprofileUpdateFrontend(memberprof *TblMemberProfile, i
 	return nil
 }
 
-func (M MemberAuth) GetAdminDetails(ChannelId int) (user auth.TblUser, err error) {
+func (M MemberAuth) GetAdminDetails(userIds []int) (user []auth.TblUser, err error) {
 
-	if err := M.Auth.DB.Debug().Table("tbl_users").Select("tbl_users.id,tbl_users.uuid,tbl_users.first_name,tbl_users.last_name,tbl_users.role_id,tbl_users.email,tbl_users.username,tbl_users.password,tbl_users.mobile_no,tbl_users.is_active,tbl_users.profile_image,tbl_users.profile_image_path,tbl_users.data_access,tbl_users.created_on,tbl_users.created_by,tbl_users.modified_on,tbl_users.modified_by,tbl_users.last_login,tbl_users.is_deleted,tbl_users.deleted_on,tbl_users.deleted_by").Joins("inner join tbl_channels on tbl_channels.created_by=tbl_users.id").Where("tbl_users.is_deleted = 0 and tbl_channels.is_deleted = 0 and tbl_channels.is_active = 1 and tbl_channels.id=?", ChannelId).First(&user).Error; err != nil {
+	if err := M.Auth.DB.Debug().Table("tbl_users").Select("tbl_users.id,tbl_users.uuid,tbl_users.first_name,tbl_users.last_name,tbl_users.role_id,tbl_users.email,tbl_users.username,tbl_users.password,tbl_users.mobile_no,tbl_users.is_active,tbl_users.profile_image,tbl_users.profile_image_path,tbl_users.data_access,tbl_users.created_on,tbl_users.created_by,tbl_users.modified_on,tbl_users.modified_by,tbl_users.last_login,tbl_users.is_deleted,tbl_users.deleted_on,tbl_users.deleted_by").Where("tbl_users.is_deleted = 0 and tbl_users.is_active = 1 and tbl_users.id in (?)",userIds).Find(&user).Error; err != nil {
 
-		return auth.TblUser{}, err
+		return []auth.TblUser{}, err
 
 	}
 
