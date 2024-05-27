@@ -1077,7 +1077,7 @@ func CreateMemberToken(userid, roleid int, secretkey string, loginType string) (
 }
 
 /*Member login*/
-func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string) (string, error) {
+func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string, loginType string) (string, error) {
 
 	mailid := memlogin.Emailid
 
@@ -1107,9 +1107,9 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	}
 
-	if member.IsActive != 1{
+	if member.IsActive != 1 {
 
-		return "",errors.New("inactive member")
+		return "", errors.New("inactive member")
 	}
 
 	passerr := bcrypt.CompareHashAndPassword([]byte(member.Password), []byte(password))
@@ -1120,7 +1120,7 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	}
 
-	token, err := CreateMemberToken(member.Id, member.MemberGroupId, secretkey,"admin")
+	token, err := CreateMemberToken(member.Id, member.MemberGroupId, secretkey, loginType)
 
 	err1 := AS.LastLoginMembers(member.Id, M.Auth.DB)
 

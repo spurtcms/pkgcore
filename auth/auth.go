@@ -896,7 +896,7 @@ func (a Authorization) IsGranted(modulename string, permisison Action) (bool, er
 
 }
 
-func VerifyTokenWithExpiryTime(token string, secret string, currentTime int64) (int, int, error) {
+func VerifyTokenWithExpiryTime(token string, secret string, currentTime int64) (int, int, string, error) {
 
 	Claims := jwt.MapClaims{}
 
@@ -907,29 +907,31 @@ func VerifyTokenWithExpiryTime(token string, secret string, currentTime int64) (
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
 			fmt.Println(err)
-			return 0, 0, errors.New("invalid token")
+			return 0, 0,"", errors.New("invalid token")
 		}
 
-		return 0, 0, errors.New(err.Error())
+		return 0, 0,"", errors.New(err.Error())
 	}
 
 	if !tkn.Valid {
 		fmt.Println(tkn)
-		return 0, 0, errors.New("invalid token")
+		return 0, 0,"", errors.New("invalid token")
 	}
 
 	expiryTime := Claims["expiry_time"]
 
 	if currentTime > int64(expiryTime.(float64)) {
 
-		return 0, 0, errors.New("token expired")
+		return 0, 0,"", errors.New("token expired")
 	}
 
 	usrid := Claims["member_id"]
 
 	rolid := Claims["group_id"]
 
-	return int(usrid.(float64)), int(rolid.(float64)), nil
+	loginType := Claims["login_type"]
+
+	return int(usrid.(float64)), int(rolid.(float64)),loginType.(string), nil
 }
 
 // Set Difference: A - B
