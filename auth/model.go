@@ -458,10 +458,8 @@ func (as Authstruct) MultiSelectRoleIsActive(role *TblRole, id []int, val int, D
 
 func (as Authstruct) GetRoleByName(role *[]TblRole, DB *gorm.DB) error {
 
-	if err := DB.Model(TblRole{}).Where("slug=?", "admin").Find(&role).Error; err != nil {
-
+	if err := DB.Model(TblRole{}).Where("slug IN (?)", []string{"admin", "super_admin"}).Find(&role).Error; err != nil {
 		return err
-
 	}
 
 	return nil

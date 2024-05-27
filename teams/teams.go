@@ -542,7 +542,7 @@ func (a TeamAuth) UpdateMyUser(userupdate TeamCreate) error {
 
 	user.ModifiedBy = userid
 
-	user.IsActive = userupdate.IsActive
+	// user.IsActive = userupdate.IsActive
 
 	user.DataAccess = userupdate.DataAccess
 
