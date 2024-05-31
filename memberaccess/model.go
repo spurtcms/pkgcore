@@ -495,7 +495,7 @@ func (at AccessType) GetaccessGrantedEntriesCount(count *int64, accessId int, DB
 
 func (at AccessType) GetAccessGrantedEntries(AccessEntries *[]TblAccessControlPages, accessId int, DB *gorm.DB) error {
 
-	if err := DB.Table("tbl_access_control_pages").Select("distinct on (tbl_access_control_pages.entry_id) tbl_access_control_pages.*").
+	if err := DB.Table("tbl_access_control_pages").Select("distinct(tbl_access_control_pages.entry_id) tbl_access_control_pages.*").
 		Joins("inner join tbl_access_control_user_groups on tbl_access_control_user_groups.id = tbl_access_control_pages.access_control_user_group_id").
 		Joins("inner join tbl_access_controls on tbl_access_controls.id = tbl_access_control_user_groups.access_control_id").
 		Where("tbl_access_controls.is_deleted = 0 and tbl_access_control_pages.is_deleted = 0 and tbl_access_controls.id = ? and tbl_access_control_pages.entry_id!= 0", accessId).Find(&AccessEntries).Error; err != nil {
