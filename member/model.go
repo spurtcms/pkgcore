@@ -51,9 +51,9 @@ type TblMemberGroup struct {
 	CreatedBy   int
 	ModifiedOn  time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy  int       `gorm:"DEFAULT:NULL"`
-	DeletedOn   time.Time
-	DeletedBy   int
-	DateString  string `gorm:"-"`
+	DeletedOn   time.Time `gorm:"DEFAULT:NULL"`
+	DeletedBy   int       `gorm:"DEFAULT:NULL"`
+	DateString  string    `gorm:"-"`
 }
 
 type MemberLogin struct {
