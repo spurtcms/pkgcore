@@ -28,7 +28,7 @@ type TblMember struct {
 	ModifiedOn       time.Time `gorm:"DEFAULT:NULL"`
 	ModifiedBy       int       `gorm:"DEFAULT:NULL"`
 	MemberGroupId    int
-	GroupName        string `gorm:"->"`
+	GroupName        string `gorm:"-"`
 	Password         string
 	DateString       string    `gorm:"-"`
 	Username         string    `gorm:"DEFAULT:NULL"`
