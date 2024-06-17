@@ -38,6 +38,7 @@ type TblMember struct {
 	NameString       string    `gorm:"-"`
 	LoginTime        time.Time `gorm:"DEFAULT:NULL"`
 	Token            string    `gorm:"-"`
+	StorageType          string
 }
 
 type TblMemberGroup struct {
@@ -129,6 +130,7 @@ type TblMemberProfile struct {
 	IsDeleted       int       `gorm:"DEFAULT:0"`
 	DeletedBy       int       `gorm:"DEFAULT:NULL"`
 	DeletedOn       time.Time `gorm:"DEFAULT:NULL"`
+	StorageType          string
 }
 
 // Member Group List

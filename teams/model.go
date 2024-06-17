@@ -39,6 +39,7 @@ type TblUser struct {
 	RoleName             string    `gorm:"-:migration;<-:false"`
 	DefaultLanguageId    int
 	NameString           string `gorm:"-"`
+	StorageType          string
 }
 
 type Filters struct {
