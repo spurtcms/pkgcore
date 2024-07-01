@@ -1077,7 +1077,7 @@ func CreateMemberToken(userid, roleid int, secretkey string, loginType string) (
 }
 
 /*Member login*/
-func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string, loginType string) (string, error) {
+func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string, loginType string, ecomModule int) (string, error) {
 
 	mailid := memlogin.Emailid
 
@@ -1085,26 +1085,33 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	password := memlogin.Password
 
-	var member TblMember
+	var (
+		member TblMember
+		query  *gorm.DB
+	)
+
+	query = db.Debug().Table("tbl_members")
+
+	if ecomModule == 1 {
+
+		query = query.Joins("inner join tbl_ecom_customers on  tbl_members.id = tbl_ecom_customers.member_id")
+	}
 
 	if username != "" {
 
-		if err := db.Debug().Table("tbl_members").Where("username = ? and is_deleted=0", username).First(&member).Error; err != nil {
+		query = query.Where("tbl_members.username = ? and tbl_members.is_deleted = 0", username)
 
-			return "", errors.New("your username not registered")
+	} else if mailid != "" {
 
-		}
+		query = query.Where("tbl_members.email = ? and tbl_members.is_deleted = 0", mailid)
 
 	}
 
-	if mailid != "" {
+	query = query.First(&member)
 
-		if err := db.Debug().Table("tbl_members").Where("email = ? and is_deleted=0", mailid).First(&member).Error; err != nil {
+	if query.Error != nil {
 
-			return "", errors.New("your email not registered")
-
-		}
-
+		return "", query.Error
 	}
 
 	if member.IsActive != 1 {
