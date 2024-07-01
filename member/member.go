@@ -1123,7 +1123,7 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	if passerr != nil || passerr == bcrypt.ErrMismatchedHashAndPassword {
 
-		return "", errors.New("invalid password")
+		return "",  errors.New("invalid password")
 
 	}
 
