@@ -1077,7 +1077,7 @@ func CreateMemberToken(userid, roleid int, secretkey string, loginType string) (
 }
 
 /*Member login*/
-func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string, loginType string, ecomModule int) (string, error) {
+func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretkey string, loginType string, module int) (string, error) {
 
 	mailid := memlogin.Emailid
 
@@ -1092,9 +1092,13 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	query = db.Debug().Table("tbl_members")
 
-	if ecomModule == 1 {
+	if module == 1 {
 
 		query = query.Joins("inner join tbl_ecom_customers on  tbl_members.id = tbl_ecom_customers.member_id")
+		
+	} else if module == 2 {
+
+		query = query.Joins("inner join tbl_jobs_applicants on tbl_members.id = tbl_jobs_applicants.member_id")
 	}
 
 	if username != "" {
@@ -1123,7 +1127,7 @@ func (M MemberAuth) CheckMemberLogin(memlogin MemberLogin, db *gorm.DB, secretke
 
 	if passerr != nil || passerr == bcrypt.ErrMismatchedHashAndPassword {
 
-		return "",  errors.New("invalid password")
+		return "", errors.New("invalid password")
 
 	}
 
