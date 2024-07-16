@@ -1318,7 +1318,7 @@ func (M MemberAuth) MemberRegister(MemC MemberCreation) (memberDetails TblMember
 
 	var member TblMember
 
-	Pass := hashingPassword(MemC.Password)
+	// Pass := hashingPassword(MemC.Password)
 
 	member.FirstName = MemC.FirstName
 
@@ -1334,7 +1334,7 @@ func (M MemberAuth) MemberRegister(MemC MemberCreation) (memberDetails TblMember
 
 	member.Username = MemC.Username
 
-	member.Password = Pass
+	member.Password = MemC.Password
 
 	member.CreatedOn, _ = time.Parse("2006-01-02 15:04:05", time.Now().UTC().Format("2006-01-02 15:04:05"))
 
